@@ -1,0 +1,6 @@
+server:
+  port: 8080
+
+socket:
+  bind_address: 127.0.0.1
+  bind_port: 8001
