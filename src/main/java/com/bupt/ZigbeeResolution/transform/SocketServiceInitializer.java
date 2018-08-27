@@ -2,16 +2,15 @@ package com.bupt.ZigbeeResolution.transform;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
-import io.netty.handler.codec.mqtt.MqttDecoder;
-import io.netty.handler.codec.mqtt.MqttEncoder;
 
 import java.util.List;
 
-public class SocketServiceInitializer {
+public class SocketServiceInitializer extends ChannelInitializer<SocketChannel>{
 
     public SocketServiceInitializer()
     {
@@ -29,6 +28,14 @@ public class SocketServiceInitializer {
         });
 
         pipeline.addLast("encoder", new MessageToByteEncoder<String>() {
+            @Override
+            protected  void encode(ChannelHandlerContext ctx, String msg, ByteBuf out){
+
+            }
         });
+
+        TransportHandler handler = new TransportHandler();
+        pipeline.addLast(handler);
+        socketChannel.closeFuture().addListener(handler);
     }
 }
