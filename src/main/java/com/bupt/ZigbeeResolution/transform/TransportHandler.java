@@ -13,7 +13,20 @@ public class TransportHandler extends ChannelInboundHandlerAdapter implements Ge
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        System.out.println("channel is active");
 
+        byte[] bytes = new byte[8];
+        int index = 0;
+        bytes[index++] = (byte)0x08;
+        bytes[index++] = (byte)0x00;
+        bytes[index++] = (byte)0x78;
+        bytes[index++] = (byte)0x56;
+        bytes[index++] = (byte)0x34;
+        bytes[index++] = (byte)0x12;
+        bytes[index++] = (byte)0xFE;
+        bytes[index] = (byte)0x81;
+
+        ctx.writeAndFlush(bytes);
     }
 
     @Override
