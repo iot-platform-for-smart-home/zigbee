@@ -15,6 +15,7 @@ public class TransportHandler extends ChannelInboundHandlerAdapter implements Ge
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
         System.out.println("channel is active");
 
+        // 获取当前连接的所有设备
         byte[] bytes = new byte[8];
         int index = 0;
         bytes[index++] = (byte)0x08;
@@ -29,14 +30,36 @@ public class TransportHandler extends ChannelInboundHandlerAdapter implements Ge
         ctx.writeAndFlush(bytes);
     }
 
+    /**
+     * 入站消息读取 ， 对每个传入的消息都要引用
+     * @param ctx
+     * @param msg
+     * @throws Exception
+     */
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
 
 
     }
 
+    /**
+     * 通知Handler最后一次调用channelRead()，读取当前入站信息最后一条消息
+     * @param future  （Future 提供了另一种在操作完成时通知应用程序的方式）
+     * @throws Exception
+     */
     @Override
     public void operationComplete(Future<? super Void> future) throws Exception {
 
+    }
+
+    /**
+     * 异常处理（记录异常并关闭连接）
+     * @param ctx
+     * @param cause
+     */
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
+        ctx.close();
     }
 }
