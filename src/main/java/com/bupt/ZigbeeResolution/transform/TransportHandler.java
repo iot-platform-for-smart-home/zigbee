@@ -1,14 +1,32 @@
 package com.bupt.ZigbeeResolution.transform;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
+import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.bupt.ZigbeeResolution.service.DataService;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.channel.group.ChannelGroup;
+import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
+import io.netty.util.concurrent.GlobalEventExecutor;
 
-public class TransportHandler extends ChannelInboundHandlerAdapter implements GenericFutureListener<Future<? super Void>> {
+import java.util.Arrays;
+
+public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implements GenericFutureListener<Future<? super Void>> {
+    public static final ChannelGroup group = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    public static final ChannelGroup channelgroups = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    public final static String LoginControlMessage = "Login OK!\r\nControl Mode\r\nGateway online:";
+    public final static String LoginMessage = "[Febit FCloud Server V2.0.0]\r\n[Normal Socket Mode]\r\nLogin:";
+    public static byte response = 0x00 ;
+    public static byte[] getSendContent;
+    byte[] b = new byte[] { 4, 0, 31, 0 };
+    byte[] bt = new byte[1024];
+
+    String ipsname = null;
+    String ips = null;
+
+    public static GatewayMethodImpl gatewayMethod = new GatewayMethodImpl();
 
     public TransportHandler() {
 
@@ -16,44 +34,82 @@ public class TransportHandler extends ChannelInboundHandlerAdapter implements Ge
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        System.out.println("channel is active");
-
-        byte[] bytes = new byte[8];
-        /*int index = 0;
-        bytes[index++] = (byte)0x08;
-        bytes[index++] = (byte)0x00;
-        bytes[index++] = (byte)0x04;
-        bytes[index++] = (byte)0x00;
-        bytes[index++] = (byte)0x1E;
-        bytes[index++] = (byte)0x00;
-        bytes[index++] = (byte)0xFE;
-        bytes[index] = (byte)0x81;
-*/
-
-        String control = "080004001E00FE81";
-        bytes = toBytes(control);
-        for(byte b:bytes){
-            System.out.println(b);
-        }
-
-        ByteBuf buf = ctx.alloc().buffer(bytes.length);
-        buf.writeBytes(bytes);
-        ctx.writeAndFlush(buf).addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(ChannelFuture channelFuture) throws Exception {
-                System.out.println("complete");
-            }
-        });
+        super.channelActive(ctx);
+        // ��channel map�����channel��Ϣ
+        SocketServer.getMap().put(getIPString(ctx), ctx.channel());
+        Channel channel = ctx.channel();
+        bt = getSendContent(80, LoginMessage.getBytes());
+        channel.write(bt);
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-        byte[] bytes = (byte[]) msg;
-        //String bytes = (String) msg;
-        //ByteBuf bytes = (ByteBuf) msg;
-        String SN = bytesToHexFun3(bytes);
-        System.out.println(SN);
+    public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+        Channel channel = ctx.channel();
+        for (Channel ch : group) {
+            ch.writeAndFlush(channel.remoteAddress());
+        }
+        group.add(channel);
+    }
 
+
+    @Override
+    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+        // ɾ��Channel Map�е�ʧЧClient
+        SocketServer.getMap().remove(getIPString(ctx));
+        ctx.close().sync();
+
+    }
+
+    @Override
+    public void channelRead0(ChannelHandlerContext ctx, byte[] msg) throws Exception {
+        String name = null;
+        String pwd = null;
+        byte byteA3 = msg[2];
+        Channel channel = ctx.channel();
+        String ctxip = channel.toString();
+        String ip = getRemoteAddress(ctx);
+        for (Channel ch : group) {
+            ips = ip.substring(1, ip.length() - 6);
+            if (ch == channel){
+                System.out.println(SocketServer.bytesToHexString(msg));
+                if (byteA3 == 30) {
+                    System.out.println(ctx.toString() + "：" + SocketServer.bytesToHexString(msg));
+                    ch.writeAndFlush(b);
+                    if(response!=0x00){
+                        DataService.setStatetrue();
+                        response = 0x00;
+                    }
+                }else if(byteA3 == 81) {
+                    System.out.println(Arrays.toString(msg));
+                    String s = new String(msg);
+                    if (s.length() == 16) {
+                        name = s.substring(6, 12);
+                        pwd = s.substring(12, 16);
+                    } else if (s.length() == 17) {
+                        name = s.substring(6, 13);
+                        pwd = s.substring(13, 17);
+                    }
+                    bt = getSendContent(10, LoginControlMessage.getBytes());
+                    channelgroups.add(channel);
+                    ch.writeAndFlush(bt);
+                }
+                else  if (byteA3 == 12) {
+                    System.out.println(ctx.toString() + "控制数据" + SocketServer.bytesToHexString(msg));
+                    //chs.writeAndFlush(msg);
+                } else if (byteA3 == 11) {
+
+                    System.out.println(ctx.toString() + "传感器数据" + SocketServer.bytesToHexString(msg));
+                    byte[] body = new byte[msg.length-6];
+                    System.arraycopy(msg, 6, body, 0, msg.length-6);
+                    if(body[0]!=response){
+                        DataService.setStatetrue();
+                        response = 0x00;
+                    }
+                    DataService.resolution(body);
+                    //chs.writeAndFlush(msg);
+                }
+            }
+        }
     }
 
     @Override
@@ -82,5 +138,46 @@ public class TransportHandler extends ChannelInboundHandlerAdapter implements Ge
         }
 
         return bytes;
+    }
+
+    public static String getIPString(ChannelHandlerContext ctx) {
+        String ipString = "";
+        String socketString = ctx.channel().remoteAddress().toString();
+        int colonAt = socketString.indexOf(":");
+        ipString = socketString.substring(1, colonAt);
+        return ipString;
+    }
+
+    public static String getRemoteAddress(ChannelHandlerContext ctx) {
+        String socketString = "";
+        socketString = ctx.channel().remoteAddress().toString();
+        return socketString;
+    }
+
+    public static byte[] getSendContent(int type, byte[] message) {
+        int messageLength = message.length;
+        int contentLength = message.length + 6;
+
+        byte message_low = (byte) (messageLength & 0x00ff); // �����Ϣ��λ�ֽ�
+        byte message_high = (byte) ((messageLength >> 8) & 0xff);// �����Ϣ��λ�ֽ�
+
+        byte type_low = (byte) (type & 0x00ff); // ������͵�λ�ֽ�
+        byte type_high = (byte) ((type >> 8) & 0xff);// ������͸�λ�ֽ�
+
+        byte content_low = (byte) (contentLength & 0x00ff); // ������ݳ��ȵ�λ�ֽ�
+        byte content_high = (byte) ((contentLength >> 8) & 0xff);// ������ݳ��ȸ�λ�ֽ�
+
+        byte[] headMessage = new byte[6];
+        headMessage[0] = content_low;
+        headMessage[1] = content_high;
+        headMessage[2] = type_low;
+        headMessage[3] = type_high;
+        headMessage[4] = message_low;
+        headMessage[5] = message_high;
+
+        byte[] sendContent = new byte[contentLength];
+        System.arraycopy(headMessage, 0, sendContent, 0, 6);
+        System.arraycopy(message, 0, sendContent, 6, messageLength);
+        return sendContent;
     }
 }
