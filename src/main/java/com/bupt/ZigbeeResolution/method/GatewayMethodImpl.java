@@ -2,6 +2,7 @@ package com.bupt.ZigbeeResolution.method;
 
 import com.bupt.ZigbeeResolution.Gateway.data.Command;
 import com.bupt.ZigbeeResolution.data.Device;
+import com.bupt.ZigbeeResolution.data.Gateway;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
@@ -50,5 +51,10 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void device_CallBack(Device device){
         System.out.println(device.toString());
+    }
+
+    @Override
+    public void gateway_CallBack(Gateway gateway){
+        System.out.println(gateway.toString());
     }
 }
