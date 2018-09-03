@@ -1,6 +1,8 @@
 package com.bupt.ZigbeeResolution.service;
 
 import com.bupt.ZigbeeResolution.data.Device;
+import com.bupt.ZigbeeResolution.method.GatewayMethod;
+import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -8,13 +10,13 @@ import java.util.List;
 
 public class DataService {
     private static List<Object> list = new LinkedList<Object>();
-    private static boolean state;
 
+    private GatewayMethod gatewayMethod = new GatewayMethodImpl();
     public static void cleatList(){
         list.clear();
     }
 
-    public static void resolution(byte[] bytes) {
+    public void resolution(byte[] bytes) {
         System.out.println("进入");
         byte Response = bytes[0];
         switch (Response){
@@ -48,6 +50,7 @@ public class DataService {
                 device.setRecentState(Arrays.copyOfRange(bytes, length-4, length));
                 list.add(device);
                 System.out.println("完成解析");
+                gatewayMethod.device_CallBack(device);
                 break;
 
         }
@@ -68,17 +71,4 @@ public class DataService {
     public static List<Object> getList(){
         return list;
     }
-
-    public static void setStatefalse(){
-        state = false;
-    }
-
-    public static void setStatetrue(){
-        state = true;
-    }
-
-    public static boolean getState(){
-        return state;
-    }
-
 }

@@ -2,8 +2,10 @@ package com.bupt.ZigbeeResolution.method;
 
 import com.bupt.ZigbeeResolution.data.Device;
 
-import java.util.List;
-
 public interface GatewayMethod {
-   List<Device> getAllDevice();
+  void getAllDevice() throws Exception;
+
+  void getGatewayInfo() throws Exception;
+
+  public void device_CallBack(Device device);
 }
