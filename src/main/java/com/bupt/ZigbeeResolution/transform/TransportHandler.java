@@ -18,8 +18,8 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     public static final ChannelGroup channelgroups = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     public final static String LoginControlMessage = "Login OK!\r\nControl Mode\r\nGateway online:";
     public final static String LoginMessage = "[Febit FCloud Server V2.0.0]\r\n[Normal Socket Mode]\r\nLogin:";
+    private DataService dataService = new DataService();
     public static byte response = 0x00 ;
-    public static byte[] getSendContent;
     byte[] b = new byte[] { 4, 0, 31, 0 };
     byte[] bt = new byte[1024];
 
@@ -75,10 +75,10 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                 if (byteA3 == 30) {
                     System.out.println(ctx.toString() + "：" + SocketServer.bytesToHexString(msg));
                     ch.writeAndFlush(b);
-                    if(response!=0x00){
+                 /*   if(response!=0x00){
                         DataService.setStatetrue();
                         response = 0x00;
-                    }
+                    }*/
                 }else if(byteA3 == 81) {
                     System.out.println(Arrays.toString(msg));
                     String s = new String(msg);
@@ -92,6 +92,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     bt = getSendContent(10, LoginControlMessage.getBytes());
                     channelgroups.add(channel);
                     ch.writeAndFlush(bt);
+                    gatewayMethod.getGatewayInfo();
                 }
                 else  if (byteA3 == 12) {
                     System.out.println(ctx.toString() + "控制数据" + SocketServer.bytesToHexString(msg));
@@ -101,11 +102,12 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     System.out.println(ctx.toString() + "传感器数据" + SocketServer.bytesToHexString(msg));
                     byte[] body = new byte[msg.length-6];
                     System.arraycopy(msg, 6, body, 0, msg.length-6);
-                    if(body[0]!=response){
+                    /*if(body[0]!=response){
                         DataService.setStatetrue();
                         response = 0x00;
-                    }
-                    DataService.resolution(body);
+                    }*/
+
+                    dataService.resolution(body);
                     //chs.writeAndFlush(msg);
                 }
             }
