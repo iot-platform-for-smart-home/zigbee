@@ -1,6 +1,5 @@
 package com.bupt.ZigbeeResolution.method;
 
-import com.bupt.ZigbeeResolution.Gateway.data.Command;
 import com.bupt.ZigbeeResolution.data.Device;
 import com.bupt.ZigbeeResolution.data.Gateway;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
@@ -44,7 +43,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = (byte) 0x9D;
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        Command cmd = new Command(sendMessage,(byte) 0x01);
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
