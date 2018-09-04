@@ -215,6 +215,58 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
+    public void getSceneDetail(Scene scene){
+        byte[] bytes = new byte[TransportHandler.toBytes(scene.getSceneName()).length+12];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+12));
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x8A;
+        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+4));
+        System.arraycopy(TransportHandler.toBytes(scene.getSceneId()), 0, bytes, index, TransportHandler.toBytes(scene.getSceneId()).length);
+        index=index+TransportHandler.toBytes(scene.getSceneId()).length;
+        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length));
+        System.arraycopy(scene.getSceneName().getBytes(), 0, bytes, index, scene.getSceneName().getBytes().length);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    public void deleteSceneMember(Scene scene, Device device){
+        byte[] bytes = new byte[TransportHandler.toBytes(scene.getSceneName()).length+23];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+23));
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x8B;
+        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+14));
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getDeviceId()), 0, bytes, index, TransportHandler.toBytes(device.getDeviceId()).length);
+        index=index+TransportHandler.toBytes(device.getDeviceId()).length;
+        for(int i=0;i<6;i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        for(int i=0;i<2;i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length));
+        System.arraycopy(scene.getSceneName().getBytes(), 0, bytes, index, scene.getSceneName().getBytes().length);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
     @Override
     public void device_CallBack(Device device){
         System.out.println(device.toString());
@@ -260,6 +312,19 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     @Override
     public void scene_CallBack(Scene scene){
+        System.out.println(scene.toString());
+    }
+
+    @Override
+    public void sceneDetail_CallBack(String sceneId, String[] shortAddress, int[] endPoint, String[] deviceId, byte[] data1, byte[] data2, byte[] data3, byte[] data4, byte[] IRId, int[] delay){
+        System.out.println(sceneId);
+        for(int i=0;i<shortAddress.length;i++){
+            System.out.println(shortAddress[i]+endPoint[i]+"|"+deviceId[i]+"|"+data1[i]+","+data2[i]+","+data3[i]+","+data4[i]+"|"+IRId[i]+"|"+delay[i]);
+        }
+    }
+
+    @Override
+    public void deleteSceneMember_CallBack(Scene scene){
         System.out.println(scene.toString());
     }
 }

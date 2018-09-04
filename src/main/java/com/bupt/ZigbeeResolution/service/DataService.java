@@ -22,6 +22,9 @@ public class DataService {
     Integer length;
     String shortAddress;
     int endPoint;
+    String[] shortAddresses;
+    int[] endPoints;
+
 
     public void resolution(byte[] bytes) {
         System.out.println("进入");
@@ -128,8 +131,8 @@ public class DataService {
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 String groupId = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
                 int memberLength = Integer.parseInt(String.valueOf(bytes[4]));
-                String[] shortAddresses = new String[memberLength];
-                int[] endPoints = new int[memberLength];
+                shortAddresses = new String[memberLength];
+                endPoints = new int[memberLength];
                 for(int i=0;i<memberLength;i++){
                     shortAddresses[i] =  byte2HexStr(Arrays.copyOfRange(bytes, 5+3*i, 7+3*i));
                     endPoints[i] = Integer.parseInt(String.valueOf(bytes[7+3*i]));
@@ -151,6 +154,51 @@ public class DataService {
                 scene.setSceneNumber(Integer.parseInt(String.valueOf(bytes[5+sceneNameLength])));
                 System.out.println("完成解析");
                 gatewayMethod.scene_CallBack(scene);
+                break;
+
+            case 0x20:
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                String sceneId = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
+                int deviceCount = Integer.parseInt(String.valueOf(bytes[4]));
+
+                shortAddresses = new String[deviceCount];
+                endPoints = new int[deviceCount];
+                String[] deviceId = new String[deviceCount];
+                byte[] data1 = new byte[deviceCount];
+                byte[] data2 = new byte[deviceCount];
+                byte[] data3 = new byte[deviceCount];
+                byte[] data4 = new byte[deviceCount];
+                byte[] IRId = new byte[deviceCount];
+                int[] delay = new int[deviceCount];
+
+                for(int i=0;i<deviceCount;i++){
+                    shortAddresses[i] =  byte2HexStr(Arrays.copyOfRange(bytes, 5+12*i, 7+12*i));
+                    endPoints[i] = Integer.parseInt(String.valueOf(bytes[7+12*i]));
+                    deviceId[i] = byte2HexStr(Arrays.copyOfRange(bytes, 8+12*i, 10+12*i));
+                    data1[i] = bytes[10+12*i];
+                    data2[i] = bytes[11+12*i];
+                    data3[i] = bytes[12+12*i];
+                    data4[i] = bytes[13+12*i];
+                    IRId[i] = bytes[14+12*i];
+                    delay[i] = Integer.parseInt(String.valueOf(bytes[15+12*i]));
+                }
+
+                System.out.println("完成解析");
+                gatewayMethod.sceneDetail_CallBack(sceneId, shortAddresses, endPoints, deviceId, data1, data2, data3, data4, IRId, delay);
+                break;
+
+            case 0x21:
+                Scene deleteScene = new Scene();
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                deleteScene.setSceneId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
+                int deleteSceneNameLength = Integer.parseInt(String.valueOf(bytes[4]));
+                if(deleteSceneNameLength==0){
+                    deleteScene.setSceneName("");
+                }else {
+                    deleteScene.setSceneName(bytesToAscii(Arrays.copyOfRange(bytes, 5, 5+deleteSceneNameLength)));
+                }
+                System.out.println("完成解析");
+                gatewayMethod.scene_CallBack(deleteScene);
                 break;
         }
         System.out.println("完成");

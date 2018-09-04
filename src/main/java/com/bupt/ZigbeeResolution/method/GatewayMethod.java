@@ -24,6 +24,10 @@ public interface GatewayMethod {
 
   void getScene();
 
+  void getSceneDetail(Scene scene);
+
+  void deleteSceneMember(Scene scene,Device device);
+
   public void device_CallBack(Device device);
 
   public void gateway_CallBack(Gateway gateway);
@@ -41,4 +45,8 @@ public interface GatewayMethod {
   public void groupMember_CallBack(String groupId, String[] shortAddress, int[] endPoint);
 
   public void scene_CallBack(Scene scene);
+
+  public void sceneDetail_CallBack(String sceneId, String[] shortAddress, int[] endPoint, String[] deviceId, byte[] data1, byte[] data2, byte[] data3, byte[] data4, byte[] IRId, int[] delay);
+
+  public void deleteSceneMember_CallBack(Scene scene);
 }
