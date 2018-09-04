@@ -25,6 +25,8 @@ public interface GatewayMethod {
 
   void deleteSceneMember(Scene scene,Device device);
 
+  void getTimerTask();
+
   void getTask();
 
   public void device_CallBack(Device device);
@@ -48,6 +50,8 @@ public interface GatewayMethod {
   public void sceneDetail_CallBack(String sceneId, String[] shortAddress, int[] endPoint, String[] deviceId, byte[] data1, byte[] data2, byte[] data3, byte[] data4, byte[] IRId, int[] delay);
 
   public void deleteSceneMember_CallBack(Scene scene);
+
+  public void timerTask_CallBack(TimerTask timerTask);
 
   public void task_CallBack(Task task);
 }

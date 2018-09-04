@@ -264,7 +264,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
-    public void getTask(){
+    public void getTimerTask(){
         byte[] bytes = new byte[8];
         //TransportHandler.response = 0x01;
 
@@ -277,6 +277,25 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFE;
         bytes[index] = (byte) 0x99;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+
+    public void getTask(){
+        byte[] bytes = new byte[8];
+        //TransportHandler.response = 0x01;
+
+        int index = 0;
+        bytes[index++] = (byte) 0x08;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index] = (byte) 0xA6;
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
@@ -341,6 +360,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void deleteSceneMember_CallBack(Scene scene){
         System.out.println(scene.toString());
+    }
+
+    @Override
+    public void timerTask_CallBack(TimerTask timerTask){
+        System.out.println(timerTask.toString());
     }
 
     @Override

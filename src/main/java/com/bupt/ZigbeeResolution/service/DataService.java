@@ -199,19 +199,35 @@ public class DataService {
                 break;
 
             case 0x11:
+                TimerTask timerTask = new TimerTask();
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                timerTask.setTaskId(Integer.parseInt(String.valueOf(bytes[2])));
+                timerTask.setAddressMode(Integer.parseInt(String.valueOf(bytes[3])));
+                timerTask.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 4, 6)));
+                timerTask.setEndPoint(bytes[6]);
+                timerTask.setDay(Integer.parseInt(String.valueOf(bytes[7])));
+                timerTask.setHour(Integer.parseInt(String.valueOf(bytes[8])));
+                timerTask.setMinute(Integer.parseInt(String.valueOf(bytes[9])));
+                timerTask.setSecond(Integer.parseInt(String.valueOf(bytes[10])));
+                timerTask.setTaskMode(bytes[11]);
+                timerTask.setData1(bytes[12]);
+                timerTask.setData2(bytes[13]);
+                System.out.println("完成解析");
+                gatewayMethod.timerTask_CallBack(timerTask);
+                break;
+
+            case 0x25:
                 Task task = new Task();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
-                task.setTaskId(Integer.parseInt(String.valueOf(bytes[2])));
-                task.setAddressMode(Integer.parseInt(String.valueOf(bytes[3])));
-                task.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 4, 6)));
-                task.setEndPoint(bytes[6]);
-                task.setDay(Integer.parseInt(String.valueOf(bytes[7])));
-                task.setHour(Integer.parseInt(String.valueOf(bytes[8])));
-                task.setMinute(Integer.parseInt(String.valueOf(bytes[9])));
-                task.setSecond(Integer.parseInt(String.valueOf(bytes[10])));
-                task.setTaskMode(bytes[11]);
-                task.setData1(bytes[12]);
-                task.setData2(bytes[13]);
+                task.setTaskType(bytes[2]);
+                task.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 3, 5)));
+                int taskNameLength = Integer.parseInt(String.valueOf(bytes[5]));
+                if(taskNameLength==0){
+                    task.setTaskName("");
+                }else {
+                    task.setTaskName(bytesToAscii(Arrays.copyOfRange(bytes, 6, 6+taskNameLength)));
+                }
+                task.setTaskNumber(Integer.parseInt(String.valueOf(bytes[6+taskNameLength])));
                 System.out.println("完成解析");
                 gatewayMethod.task_CallBack(task);
                 break;
