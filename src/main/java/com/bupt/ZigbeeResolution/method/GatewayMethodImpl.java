@@ -2,6 +2,8 @@ package com.bupt.ZigbeeResolution.method;
 
 import com.bupt.ZigbeeResolution.data.Device;
 import com.bupt.ZigbeeResolution.data.Gateway;
+import com.bupt.ZigbeeResolution.data.Group;
+import com.bupt.ZigbeeResolution.data.Scene;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
@@ -158,6 +160,61 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
+    public void getGroup(){
+        byte[] bytes = new byte[8];
+        //TransportHandler.response = 0x01;
+
+        int index = 0;
+        bytes[index++] = (byte) 0x08;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index] = (byte) 0x8E;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    public void getGroupMember(Group group){
+        byte[] bytes = new byte[11];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x0B;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x98;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(group.getGroupId()), 0, bytes, index, TransportHandler.toBytes(group.getGroupId()).length);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    public void getScene(){
+        byte[] bytes = new byte[8];
+        //TransportHandler.response = 0x01;
+
+        int index = 0;
+        bytes[index++] = (byte) 0x08;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index] = (byte) 0x90;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
     @Override
     public void device_CallBack(Device device){
         System.out.println(device.toString());
@@ -186,5 +243,23 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void deviceSaturation_CallBack(String shortAddress, int endPoint, int saturation){
         System.out.println(shortAddress+"-"+endPoint+":"+saturation);
+    }
+
+    @Override
+    public void group_CallBack(Group group){
+        System.out.println(group.toString());
+    }
+
+    @Override
+    public void groupMember_CallBack(String groupId, String[] shortAddress, int[] endPoint){
+        System.out.println(groupId);
+        for(int i=0;i<shortAddress.length;i++){
+            System.out.println(shortAddress[i]+endPoint[i]);
+        }
+    }
+
+    @Override
+    public void scene_CallBack(Scene scene){
+        System.out.println(scene.toString());
     }
 }

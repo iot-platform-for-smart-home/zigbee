@@ -2,6 +2,8 @@ package com.bupt.ZigbeeResolution.service;
 
 import com.bupt.ZigbeeResolution.data.Device;
 import com.bupt.ZigbeeResolution.data.Gateway;
+import com.bupt.ZigbeeResolution.data.Group;
+import com.bupt.ZigbeeResolution.data.Scene;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 
@@ -106,6 +108,49 @@ public class DataService {
                 int saturation = Integer.parseInt(String.valueOf(bytes[5]));
                 System.out.println("完成解析");
                 gatewayMethod.deviceBright_CallBack(shortAddress, endPoint, saturation);
+                break;
+
+            case 0x0C:
+                Group group = new Group();
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                group.setGroupId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
+                Integer groupNameLength = Integer.parseInt(String.valueOf(bytes[4]));
+                if(groupNameLength==0){
+                    group.setGroupName("");
+                }else {
+                    group.setGroupName(bytesToAscii(Arrays.copyOfRange(bytes, 5, 5+groupNameLength)));
+                }
+                System.out.println("完成解析");
+                gatewayMethod.group_CallBack(group);
+                break;
+
+            case 0x0B:
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                String groupId = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
+                int memberLength = Integer.parseInt(String.valueOf(bytes[4]));
+                String[] shortAddresses = new String[memberLength];
+                int[] endPoints = new int[memberLength];
+                for(int i=0;i<memberLength;i++){
+                    shortAddresses[i] =  byte2HexStr(Arrays.copyOfRange(bytes, 5+3*i, 7+3*i));
+                    endPoints[i] = Integer.parseInt(String.valueOf(bytes[7+3*i]));
+                }
+                System.out.println("完成解析");
+                gatewayMethod.groupMember_CallBack(groupId, shortAddresses, endPoints);
+                break;
+
+            case 0x0E:
+                Scene scene = new Scene();
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                scene.setSceneId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
+                int sceneNameLength = Integer.parseInt(String.valueOf(bytes[4]));
+                if(sceneNameLength==0){
+                    scene.setSceneName("");
+                }else {
+                    scene.setSceneName(bytesToAscii(Arrays.copyOfRange(bytes, 5, 5+sceneNameLength)));
+                }
+                scene.setSceneNumber(Integer.parseInt(String.valueOf(bytes[5+sceneNameLength])));
+                System.out.println("完成解析");
+                gatewayMethod.scene_CallBack(scene);
                 break;
         }
         System.out.println("完成");

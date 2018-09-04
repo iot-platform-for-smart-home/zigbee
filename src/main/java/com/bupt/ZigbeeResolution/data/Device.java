@@ -42,7 +42,7 @@ public class Device {
         sb.append("\"zoneType\":")
                 .append("\""+zoneType+"\"").append(",");
         sb.append("\"electric\":")
-                .append("\""+electric+"\"").append(",");
+                .append("\""+electric+"\"");
         sb.append('}');
         return sb.toString();
     }
