@@ -1,9 +1,6 @@
 package com.bupt.ZigbeeResolution.method;
 
-import com.bupt.ZigbeeResolution.data.Device;
-import com.bupt.ZigbeeResolution.data.Gateway;
-import com.bupt.ZigbeeResolution.data.Group;
-import com.bupt.ZigbeeResolution.data.Scene;
+import com.bupt.ZigbeeResolution.data.*;
 
 public interface GatewayMethod {
   void getAllDevice() throws Exception;
@@ -28,6 +25,8 @@ public interface GatewayMethod {
 
   void deleteSceneMember(Scene scene,Device device);
 
+  void getTask();
+
   public void device_CallBack(Device device);
 
   public void gateway_CallBack(Gateway gateway);
@@ -49,4 +48,6 @@ public interface GatewayMethod {
   public void sceneDetail_CallBack(String sceneId, String[] shortAddress, int[] endPoint, String[] deviceId, byte[] data1, byte[] data2, byte[] data3, byte[] data4, byte[] IRId, int[] delay);
 
   public void deleteSceneMember_CallBack(Scene scene);
+
+  public void task_CallBack(Task task);
 }

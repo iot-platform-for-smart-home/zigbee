@@ -1,9 +1,6 @@
 package com.bupt.ZigbeeResolution.method;
 
-import com.bupt.ZigbeeResolution.data.Device;
-import com.bupt.ZigbeeResolution.data.Gateway;
-import com.bupt.ZigbeeResolution.data.Group;
-import com.bupt.ZigbeeResolution.data.Scene;
+import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
@@ -267,6 +264,24 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
+    public void getTask(){
+        byte[] bytes = new byte[8];
+        //TransportHandler.response = 0x01;
+
+        int index = 0;
+        bytes[index++] = (byte) 0x08;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index] = (byte) 0x99;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
     @Override
     public void device_CallBack(Device device){
         System.out.println(device.toString());
@@ -326,5 +341,10 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void deleteSceneMember_CallBack(Scene scene){
         System.out.println(scene.toString());
+    }
+
+    @Override
+    public void task_CallBack(Task task){
+        System.out.println(task.toString());
     }
 }

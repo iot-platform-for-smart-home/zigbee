@@ -1,9 +1,6 @@
 package com.bupt.ZigbeeResolution.service;
 
-import com.bupt.ZigbeeResolution.data.Device;
-import com.bupt.ZigbeeResolution.data.Gateway;
-import com.bupt.ZigbeeResolution.data.Group;
-import com.bupt.ZigbeeResolution.data.Scene;
+import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 
@@ -199,6 +196,24 @@ public class DataService {
                 }
                 System.out.println("完成解析");
                 gatewayMethod.scene_CallBack(deleteScene);
+                break;
+
+            case 0x11:
+                Task task = new Task();
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                task.setTaskId(Integer.parseInt(String.valueOf(bytes[2])));
+                task.setAddressMode(Integer.parseInt(String.valueOf(bytes[3])));
+                task.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 4, 6)));
+                task.setEndPoint(bytes[6]);
+                task.setDay(Integer.parseInt(String.valueOf(bytes[7])));
+                task.setHour(Integer.parseInt(String.valueOf(bytes[8])));
+                task.setMinute(Integer.parseInt(String.valueOf(bytes[9])));
+                task.setSecond(Integer.parseInt(String.valueOf(bytes[10])));
+                task.setTaskMode(bytes[11]);
+                task.setData1(bytes[12]);
+                task.setData2(bytes[13]);
+                System.out.println("完成解析");
+                gatewayMethod.task_CallBack(task);
                 break;
         }
         System.out.println("完成");
