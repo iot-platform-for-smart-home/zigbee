@@ -17,6 +17,9 @@ public class DataService {
     public static void cleatList(){
         list.clear();
     }
+    Integer length;
+    String shortAddress;
+    int endPoint;
 
     public void resolution(byte[] bytes) {
         System.out.println("进入");
@@ -24,7 +27,7 @@ public class DataService {
         switch (Response){
             case 0x01:
                 Device device = new Device();
-                Integer length = Integer.parseInt(String.valueOf(bytes[1]));
+                length = Integer.parseInt(String.valueOf(bytes[1]));
                 device.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
                 device.setEndpoint(bytes[4]);
                 device.setProfileId(byte2HexStr(Arrays.copyOfRange(bytes, 5, 7)));
@@ -66,6 +69,43 @@ public class DataService {
                 gateway.setCompileVersionNumber(byte2HexStr(Arrays.copyOfRange(bytes, 61, 65)));
                 System.out.println("完成解析");
                 gatewayMethod.gateway_CallBack(gateway);
+                break;
+
+            case 0x07:
+                Device stateDevice = new Device();
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                stateDevice.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
+                stateDevice.setEndpoint(bytes[4]);
+                stateDevice.setState(bytes[5]==0x01);
+                System.out.println("完成解析");
+                gatewayMethod.deviceState_CallBack(stateDevice);
+                break;
+
+            case 0x08:
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
+                endPoint = Integer.parseInt(String.valueOf(bytes[4]));
+                int bright = Integer.parseInt(String.valueOf(bytes[5]));
+                System.out.println("完成解析");
+                gatewayMethod.deviceBright_CallBack(shortAddress, endPoint, bright);
+                break;
+
+            case 0x09:
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
+                endPoint = Integer.parseInt(String.valueOf(bytes[4]));
+                int hue = Integer.parseInt(String.valueOf(bytes[5]));
+                System.out.println("完成解析");
+                gatewayMethod.deviceBright_CallBack(shortAddress, endPoint, hue);
+                break;
+
+            case 0x0A:
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
+                endPoint = Integer.parseInt(String.valueOf(bytes[4]));
+                int saturation = Integer.parseInt(String.valueOf(bytes[5]));
+                System.out.println("完成解析");
+                gatewayMethod.deviceBright_CallBack(shortAddress, endPoint, saturation);
                 break;
         }
         System.out.println("完成");
