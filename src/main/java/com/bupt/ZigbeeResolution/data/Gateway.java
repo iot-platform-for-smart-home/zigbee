@@ -38,7 +38,7 @@ public class Gateway {
         sb.append("\"missionNumber\":")
                 .append("\""+missionNumber+"\"").append(",");
         sb.append("\"compileVersionNumber\":")
-                .append("\""+compileVersionNumber+"\"").append(",");
+                .append("\""+compileVersionNumber+"\"");
         sb.append('}');
         return sb.toString();
     }

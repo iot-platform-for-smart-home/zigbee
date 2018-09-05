@@ -92,7 +92,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     bt = getSendContent(10, LoginControlMessage.getBytes());
                     channelgroups.add(channel);
                     ch.writeAndFlush(bt);
-                    gatewayMethod.getGatewayInfo();
+
                 }
                 else  if (byteA3 == 12) {
                     System.out.println(ctx.toString() + "控制数据" + SocketServer.bytesToHexString(msg));
