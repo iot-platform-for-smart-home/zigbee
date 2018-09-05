@@ -301,6 +301,26 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
+    public void getTaskDetail(Task task){
+        byte[] bytes = new byte[TransportHandler.toBytes(task.getTaskName()).length+10];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (task.getTaskName().getBytes().length+10));
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA5;
+        bytes[index++] = (byte) (0xFF & (task.getTaskName().getBytes().length+1));
+        bytes[index++] = (byte) (0xFF & (task.getTaskName().getBytes().length));
+        System.arraycopy(task.getTaskName().getBytes(), 0, bytes, index, task.getTaskName().getBytes().length);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
     @Override
     public void device_CallBack(Device device){
         System.out.println(device.toString());
@@ -370,5 +390,21 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void task_CallBack(Task task){
         System.out.println(task.toString());
+    }
+
+    @Override
+    public void taskDeviceDetail_CallBack(TaskDeviceDetail taskDeviceDetail, String sceneId){
+        System.out.println(taskDeviceDetail.toString());
+    }
+
+    @Override
+    public void taskSceneDetail_CallBack(TaskSceneDetail taskSceneDetail, String sceneId){
+        System.out.println(taskSceneDetail.toString());
+    }
+
+    @Override
+    public void taskTimerDetail_CallBack(TaskTimerDetail taskTimerDetail, String sceneId){
+        System.out.println(taskTimerDetail.toString());
+
     }
 }

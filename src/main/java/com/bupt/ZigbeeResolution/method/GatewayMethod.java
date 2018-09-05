@@ -29,6 +29,8 @@ public interface GatewayMethod {
 
   void getTask();
 
+  void getTaskDetail(Task task);
+
   public void device_CallBack(Device device);
 
   public void gateway_CallBack(Gateway gateway);
@@ -54,4 +56,10 @@ public interface GatewayMethod {
   public void timerTask_CallBack(TimerTask timerTask);
 
   public void task_CallBack(Task task);
+
+  public void taskSceneDetail_CallBack(TaskSceneDetail taskSceneDetail, String sceneId);
+
+  public void taskTimerDetail_CallBack(TaskTimerDetail taskTimerDetail, String sceneId);
+
+  public void taskDeviceDetail_CallBack(TaskDeviceDetail taskDeviceDetail, String sceneId);
 }

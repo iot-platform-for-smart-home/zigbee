@@ -21,6 +21,8 @@ public class DataService {
     int endPoint;
     String[] shortAddresses;
     int[] endPoints;
+    int taskNameLength;
+
 
 
     public void resolution(byte[] bytes) {
@@ -221,15 +223,87 @@ public class DataService {
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 task.setTaskType(bytes[2]);
                 task.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 3, 5)));
-                int taskNameLength = Integer.parseInt(String.valueOf(bytes[5]));
+                taskNameLength = Integer.parseInt(String.valueOf(bytes[5]));
                 if(taskNameLength==0){
                     task.setTaskName("");
                 }else {
                     task.setTaskName(bytesToAscii(Arrays.copyOfRange(bytes, 6, 6+taskNameLength)));
                 }
-                task.setTaskNumber(Integer.parseInt(String.valueOf(bytes[6+taskNameLength])));
                 System.out.println("完成解析");
                 gatewayMethod.task_CallBack(task);
+                break;
+
+            case 0x24:
+                TaskTimerDetail taskTimerDetail = new TaskTimerDetail();
+                TaskSceneDetail taskSceneDetail = new TaskSceneDetail();
+                TaskDeviceDetail taskDeviceDetail = new TaskDeviceDetail();
+                String taskSceneId;
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+
+                switch (bytes[3]){
+                    case 0x01:
+                        taskTimerDetail.setTaskType(bytes[2]);
+                        taskTimerDetail.setDay(Integer.parseInt(String.valueOf(bytes[4])));
+                        taskTimerDetail.setHour(Integer.parseInt(String.valueOf(bytes[5])));
+                        taskTimerDetail.setMinute(Integer.parseInt(String.valueOf(bytes[6])));
+                        taskTimerDetail.setSecond(Integer.parseInt(String.valueOf(bytes[7])));
+                        taskSceneId = byte2HexStr(Arrays.copyOfRange(bytes, 24, 26));
+                        taskTimerDetail.setIsAlarm(bytes[43]);
+                        taskTimerDetail.setIsAble(bytes[44]);
+                        taskNameLength = Integer.parseInt(String.valueOf(bytes[49]));
+                        if(taskNameLength==0){
+                            taskTimerDetail.setTaskName("");
+                        }else {
+                            taskTimerDetail.setTaskName(bytesToAscii(Arrays.copyOfRange(bytes, 50, 50+taskNameLength)));
+                        }
+                        taskTimerDetail.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 50+taskNameLength, 52+taskNameLength)));
+
+                        System.out.println("完成解析");
+                        gatewayMethod.taskTimerDetail_CallBack(taskTimerDetail, taskSceneId);
+                        break;
+                    case 0x02:
+                        taskSceneDetail.setTaskType(bytes[2]);
+                        taskSceneDetail.setSceneId(byte2HexStr(Arrays.copyOfRange(bytes, 4, 6)));
+                        taskSceneId = byte2HexStr(Arrays.copyOfRange(bytes, 24, 26));
+                        taskSceneDetail.setIsAlarm(bytes[43]);
+                        taskSceneDetail.setIsAble(bytes[44]);
+                        taskNameLength = Integer.parseInt(String.valueOf(bytes[49]));
+                        if(taskNameLength==0){
+                            taskSceneDetail.setTaskName("");
+                        }else {
+                            taskSceneDetail.setTaskName(bytesToAscii(Arrays.copyOfRange(bytes, 50, 50+taskNameLength)));
+                        }
+                        taskSceneDetail.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 50+taskNameLength, 52+taskNameLength)));
+
+                        System.out.println("完成解析");
+                        gatewayMethod.taskSceneDetail_CallBack(taskSceneDetail, taskSceneId);
+                        break;
+                    case 0x03:
+                        taskDeviceDetail.setTaskType(bytes[2]);
+                        taskDeviceDetail.setShortAddress(byte2HexStr(Arrays.copyOfRange(bytes, 4, 6)));
+                        taskDeviceDetail.setDeviceId(byte2HexStr(Arrays.copyOfRange(bytes, 6, 8)));
+                        taskDeviceDetail.setEndPoint(bytes[8]);
+                        taskDeviceDetail.setCondition1(bytes[9]);
+                        taskDeviceDetail.setData1(bytesToInt(Arrays.copyOfRange(bytes, 10, 14)));
+                        if(bytes[14]!=0x00){
+                            taskDeviceDetail.setCondition2(bytes[14]);
+                            taskDeviceDetail.setData2(bytesToInt(Arrays.copyOfRange(bytes, 15, 19)));
+                        }
+                        taskSceneId = byte2HexStr(Arrays.copyOfRange(bytes, 24, 26));
+                        taskDeviceDetail.setIsAlarm(bytes[43]);
+                        taskDeviceDetail.setIsAble(bytes[44]);
+                        taskNameLength = Integer.parseInt(String.valueOf(bytes[49]));
+                        if(taskNameLength==0){
+                            taskDeviceDetail.setTaskName("");
+                        }else {
+                            taskDeviceDetail.setTaskName(bytesToAscii(Arrays.copyOfRange(bytes, 50, 50+taskNameLength)));
+                        }
+                        taskDeviceDetail.setTaskId(byte2HexStr(Arrays.copyOfRange(bytes, 50+taskNameLength, 52+taskNameLength)));
+
+                        System.out.println("完成解析");
+                        gatewayMethod.taskDeviceDetail_CallBack(taskDeviceDetail, taskSceneId);
+                        break;
+                }
                 break;
         }
         System.out.println("完成");
@@ -271,5 +345,14 @@ public class DataService {
 
     public static List<Object> getList(){
         return list;
+    }
+
+    public static int bytesToInt(byte[] src) {
+        int value;
+        value = (int) ((src[0] & 0xFF)
+                | ((src[1] & 0xFF)<<8)
+                | ((src[2] & 0xFF)<<16)
+                | ((src[3] & 0xFF)<<24));
+        return value;
     }
 }
