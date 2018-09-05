@@ -31,6 +31,10 @@ public interface GatewayMethod {
 
   void getTaskDetail(Task task);
 
+  void getDeviceColourTemp(Device device);
+
+  void setGroupName(Group group, String name);
+
   public void device_CallBack(Device device);
 
   public void gateway_CallBack(Gateway gateway);
@@ -42,6 +46,8 @@ public interface GatewayMethod {
   public void deviceHue_CallBack(String shortAddress, int endPoint, int hue);
 
   public void deviceSaturation_CallBack(String shortAddress, int endPoint, int saturation);
+
+  public void deviceColourTemp_CallBack(String shortAddress, int endPoint, int colourTemp);
 
   public void group_CallBack(Group group);
 
@@ -62,4 +68,6 @@ public interface GatewayMethod {
   public void taskTimerDetail_CallBack(TaskTimerDetail taskTimerDetail, String sceneId);
 
   public void taskDeviceDetail_CallBack(TaskDeviceDetail taskDeviceDetail, String sceneId);
+
+  public void setGroupName_CallBack(Group group);
 }

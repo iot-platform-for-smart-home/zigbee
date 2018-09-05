@@ -305,6 +305,31 @@ public class DataService {
                         break;
                 }
                 break;
+
+            case 0x27:
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
+                endPoint = Integer.parseInt(String.valueOf(bytes[4]));
+                int colourTemp = (int) ((bytes[5] & 0xFF) | ((bytes[6] & 0xFF)<<8));
+
+                System.out.println("完成解析");
+                gatewayMethod.deviceColourTemp_CallBack(shortAddress, endPoint, colourTemp);
+                break;
+
+            case (byte)0xAF:
+                Group newGroupName = new Group();
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                newGroupName.setGroupId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
+                Integer newGroupNameLength = Integer.parseInt(String.valueOf(bytes[4]));
+                if(newGroupNameLength==0){
+                    newGroupName.setGroupName("");
+                }else {
+                    newGroupName.setGroupName(bytesToAscii(Arrays.copyOfRange(bytes, 5, 5+newGroupNameLength)));
+                }
+                System.out.println("完成解析");
+                gatewayMethod.setGroupName_CallBack(newGroupName);
+                break;
+
         }
         System.out.println("完成");
     }

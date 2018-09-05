@@ -321,6 +321,52 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
+    public void getDeviceColourTemp(Device device){
+        byte[] bytes = new byte[21];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x15;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA9;
+        bytes[index++] = (byte) 0x0A;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index=index+TransportHandler.toBytes(device.getShortAddress()).length;
+        for(int i=0;i<6;i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index] = device.getEndpoint();
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    public void setGroupName(Group group,String name){
+        byte[] bytes = new byte[TransportHandler.toBytes(name).length+12];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (name.getBytes().length+12));
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA5;
+        bytes[index++] = (byte) (0xFF & (name.getBytes().length+3));
+        System.arraycopy(TransportHandler.toBytes(group.getGroupId()), 0, bytes, index, TransportHandler.toBytes(group.getGroupId()).length);
+        index=index+TransportHandler.toBytes(group.getGroupId()).length;
+        bytes[index++] = (byte) (0xFF & (name.getBytes().length));
+        System.arraycopy(TransportHandler.toBytes(name), 0, bytes, index, TransportHandler.toBytes(name).length);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
     @Override
     public void device_CallBack(Device device){
         System.out.println(device.toString());
@@ -349,6 +395,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void deviceSaturation_CallBack(String shortAddress, int endPoint, int saturation){
         System.out.println(shortAddress+"-"+endPoint+":"+saturation);
+    }
+
+    @Override
+    public void deviceColourTemp_CallBack(String shortAddress, int endPoint, int colourTemp){
+        System.out.println(shortAddress+"-"+endPoint+":"+colourTemp);
     }
 
     @Override
@@ -405,6 +456,10 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void taskTimerDetail_CallBack(TaskTimerDetail taskTimerDetail, String sceneId){
         System.out.println(taskTimerDetail.toString());
+    }
 
+    @Override
+    public void setGroupName_CallBack(Group group){
+        System.out.println(group.toString());
     }
 }
