@@ -42,10 +42,10 @@ public class SocketServer {
                                 throws Exception {
                             // Decoders
                             //ch.pipeline().addLast("frameDecoder", new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
-                            ch.pipeline().addLast("bytesDecoder", new ByteArrayDecoder());
+                            ch.pipeline().addLast("bytesDecoder", new ByteArrayDecoder());  // transform <byteBuf>msg into byte[] bytes
                             // Encoder
                             //ch.pipeline().addLast("frameEncoder", new LengthFieldPrepender(4));
-                            ch.pipeline().addLast("bytesEncoder", new ByteArrayEncoder());
+                            ch.pipeline().addLast("bytesEncoder", new ByteArrayEncoder());  // Encodes the requested array of bytes into a ByteBuf
                             ch.pipeline().addLast(new OutBoundHandler());
                             ch.pipeline().addLast(new IdleStateHandler(0,0,300), new TransportHandler());
                         }
