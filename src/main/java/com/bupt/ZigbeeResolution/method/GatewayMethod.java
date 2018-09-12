@@ -35,39 +35,102 @@ public interface GatewayMethod {
 
   void setGroupName(Group group, String name);
 
-  public void device_CallBack(Device device);
+  // 修改设备名
+  void changeDeviceName(Device device, String name);
 
-  public void gateway_CallBack(Gateway gateway);
+  //删除指定设备
+  void deleteDevice(Device divice);
 
-  public void deviceState_CallBack(Device device);
+  //设置指定设备的开关状态
+  void setDeviceState(Device device, byte state);
 
-  public void deviceBright_CallBack(String shortAddress, int endPoint, int bright);
+  // 设置指定设备的亮度
+  void setDeviceLevel(Device device ,byte value, int transition);
 
-  public void deviceHue_CallBack(String shortAddress, int endPoint, int hue);
+  // 设置指定设备的颜色
+  void setDeviceHueAndSat(Device device, byte hue, byte sat, int transition);
 
-  public void deviceSaturation_CallBack(String shortAddress, int endPoint, int saturation);
+  // 添加场景
+  void addScene(Device device , byte state, byte data2,
+                byte data3, byte data4, String sceneName,
+                byte irId, int transition, byte funcId);
+  // 报警器
+  void addScene(Device device , byte state, byte data2,
+                byte data3, byte data4, String sceneName,
+                byte irId, int transition);
 
-  public void deviceColourTemp_CallBack(String shortAddress, int endPoint, int colourTemp);
+  // 调用场景
+  void callScene(String sceneId);
 
-  public void group_CallBack(Group group);
+  // 获取设备信息
+  void getDeviceInfo(Device device);
 
-  public void groupMember_CallBack(String groupId, String[] shortAddress, int[] endPoint);
+  // 修改场景名
+  void changeSceneName(String sceneId, String sceneName);
 
-  public void scene_CallBack(Scene scene);
+  // 设置报告间隔时间
+  void setReportTime(Device device, String clusterId,
+                String attribId, String dataType, int time);
 
-  public void sceneDetail_CallBack(String sceneId, String[] shortAddress, int[] endPoint, String[] deviceId, byte[] data1, byte[] data2, byte[] data3, byte[] data4, byte[] IRId, int[] delay);
+  // 设置指定设备的色温
+  void setColorTemperature(Device device, int  value, int transition);
 
-  public void deleteSceneMember_CallBack(Scene scene);
 
-  public void timerTask_CallBack(TimerTask timerTask);
+  void device_CallBack(Device device);
 
-  public void task_CallBack(Task task);
+  void gateway_CallBack(Gateway gateway);
 
-  public void taskSceneDetail_CallBack(TaskSceneDetail taskSceneDetail, String sceneId);
+  void deviceState_CallBack(Device device);
 
-  public void taskTimerDetail_CallBack(TaskTimerDetail taskTimerDetail, String sceneId);
+  void deviceBright_CallBack(String shortAddress, int endPoint, int bright);
 
-  public void taskDeviceDetail_CallBack(TaskDeviceDetail taskDeviceDetail, String sceneId);
+  void deviceHue_CallBack(String shortAddress, int endPoint, int hue);
 
-  public void setGroupName_CallBack(Group group);
+  void deviceSaturation_CallBack(String shortAddress, int endPoint, int saturation);
+
+  void deviceColourTemp_CallBack(String shortAddress, int endPoint, int colourTemp);
+
+  void group_CallBack(Group group);
+
+  void groupMember_CallBack(String groupId, String[] shortAddress, int[] endPoint);
+
+  void scene_CallBack(Scene scene);
+
+  void sceneDetail_CallBack(String sceneId, String[] shortAddress, int[] endPoint, String[] deviceId, byte[] data1, byte[] data2, byte[] data3, byte[] data4, byte[] IRId, int[] delay);
+
+  void deleteSceneMember_CallBack(Scene scene);
+
+  void timerTask_CallBack(TimerTask timerTask);
+
+  void task_CallBack(Task task);
+
+  void taskSceneDetail_CallBack(TaskSceneDetail taskSceneDetail, String sceneId);
+
+  void taskTimerDetail_CallBack(TaskTimerDetail taskTimerDetail, String sceneId);
+
+  void taskDeviceDetail_CallBack(TaskDeviceDetail taskDeviceDetail, String sceneId);
+
+  void setGroupName_CallBack(Group group);
+
+  void changeDeviceName_CallBack(String shortAddress, int endPoint, String name);
+
+  void deleteDevice_CallBack();
+
+  void setDeviceState_CallBack();
+
+  void setDeviceLevel_CallBack();
+
+  void setDeviceHueAndSat_CallBack();
+
+  void addScene_CallBack(Scene scene);
+
+  void callScene_CallBack();
+
+  void getDeviceInfo_CallBack(Device device, String data);
+
+  void changeSceneName_CallBack(Scene scene);
+
+  void setReportTime_CallBack();
+
+  void setColorTemperature_CallBack();
 }

@@ -46,8 +46,4 @@ public class Device {
         sb.append('}');
         return sb.toString();
     }
-
-    public boolean getState(){
-        return state;
-    }
 }
