@@ -8,7 +8,7 @@ public class Device {
     byte Endpoint;
     String profileId;
     String deviceId;
-    boolean state;
+    Boolean state;
     String name;
     byte onlineState;
     String IEEE;

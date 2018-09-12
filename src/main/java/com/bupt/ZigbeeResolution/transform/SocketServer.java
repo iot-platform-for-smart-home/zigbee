@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
+//@Service
 public class SocketServer {
     private int port;
 
@@ -70,10 +70,13 @@ public class SocketServer {
      * @param args
      * @throws Exception
      */
-    public static void main(String args[]) throws Exception{
-        new SocketServer(8090).start();
-
-
+    public static void main(String args[]) {
+        System.out.println("=================================");;
+        try {
+            new SocketServer(8090).start();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static Map<String, Channel> getMap() {
