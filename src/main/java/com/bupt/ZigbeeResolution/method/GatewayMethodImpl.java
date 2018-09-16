@@ -193,6 +193,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     public void getScene(){
+        System.out.print("获取场景 => ");
         byte[] bytes = new byte[8];
         //TransportHandler.response = 0x01;
 
@@ -211,10 +212,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     public void getSceneDetail(Scene scene){
-        byte[] bytes = new byte[TransportHandler.toBytes(scene.getSceneName()).length+12];
+        System.out.print("获取场景详细信息 => ");
+        byte[] bytes = new byte[scene.getSceneName().getBytes().length + 12];
 
         int index = 0;
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+12));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length+12));
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFF;
@@ -222,10 +224,10 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0x8A;
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+4));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length+4));
         System.arraycopy(TransportHandler.toBytes(scene.getSceneId()), 0, bytes, index, TransportHandler.toBytes(scene.getSceneId()).length);
         index=index+TransportHandler.toBytes(scene.getSceneId()).length;
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length));
         System.arraycopy(scene.getSceneName().getBytes(), 0, bytes, index, scene.getSceneName().getBytes().length);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
@@ -501,20 +503,21 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     @Override
     public void addScene(Device device, byte state, byte data2, byte data3, byte data4, String sceneName, byte irId, int transition, byte funcId) {
-        byte[] bytes = new byte[30 + sceneName.getBytes().length];
+        System.out.print("添加场景 => ");
+        byte[] bytes = new byte[31 + sceneName.getBytes().length];
 
         int index = 0;
-        bytes[index++] = (byte) (30 + sceneName.getBytes().length);
+        bytes[index++] = (byte) (31 + sceneName.getBytes().length);
         bytes[index++] = (byte) 0x00;
         for (int i = 0; i < 4; i++){
             bytes[index++] = (byte) 0xFF;
         }
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0x91;
-        bytes[index++] = (byte) (22 + sceneName.getBytes().length);
+        bytes[index++] = (byte) (23 + sceneName.getBytes().length);
         bytes[index++] = (byte) 0x02;
-        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
-        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, 2);
+        index = index + 2;
         for (int i = 0; i < 6; i++){
             bytes[index++] = (byte) 0x00;
         }
@@ -540,17 +543,18 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     @Override
     public void addScene(Device device, byte state, byte data2, byte data3, byte data4, String sceneName, byte irId, int transition) {
-        byte[] bytes = new byte[29 + sceneName.getBytes().length];
+        System.out.print("添加场景 => ");
+        byte[] bytes = new byte[30 + sceneName.getBytes().length];
 
         int index = 0;
-        bytes[index++] = (byte) (29 + sceneName.getBytes().length);
+        bytes[index++] = (byte) (30 + sceneName.getBytes().length);
         bytes[index++] = (byte) 0x00;
         for (int i = 0; i < 4; i++){
             bytes[index++] = (byte) 0xFF;
         }
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0x91;
-        bytes[index++] = (byte) (21 + sceneName.getBytes().length);
+        bytes[index++] = (byte) (22 + sceneName.getBytes().length);
         bytes[index++] = (byte) 0x02;
         System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
         index = index+TransportHandler.toBytes(device.getShortAddress()).length;
@@ -578,6 +582,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     @Override
     public void callScene(String sceneId) {
+        System.out.print("调用场景 => ");
         byte[] bytes = new byte[11];
 
         int index = 0;
@@ -589,7 +594,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0x92;
         bytes[index++] = (byte) 0x02;
-        System.arraycopy(sceneId.getBytes(), 0, bytes, index, 2);
+        System.arraycopy(TransportHandler.toBytes(sceneId), 0, bytes, index, 2);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
@@ -633,8 +638,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0x8C;
         bytes[index++] = (byte) (3 + name.getBytes().length);
-        System.arraycopy(sceneId.getBytes(), 0, bytes, index, sceneId.getBytes().length);
-        index = index + sceneId.getBytes().length;
+        System.arraycopy(TransportHandler.toBytes(sceneId), 0, bytes, index, 2);
+        index = index + 2;
         bytes[index++] = (byte) name.getBytes().length;
         System.arraycopy(name.getBytes(), 0, bytes, index, name.getBytes().length);
 
@@ -665,9 +670,9 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         for (int i = 0; i < 2; i++){
             bytes[index++] = (byte) 0x00;
         }
-        System.arraycopy(clusterId.getBytes(), 0, bytes, index, 2);
+        System.arraycopy(TransportHandler.toBytes(attribId), 0, bytes, index, 2);
         index = index + 2;
-        System.arraycopy(attribId.getBytes(), 0, bytes, index, 2);
+        System.arraycopy(TransportHandler.toBytes(attribId), 0, bytes, index, 2);
         index = index + 2;
         bytes[index++] = (byte) 0x21;
         bytes[index++] = (byte) (0xFF & transition);
