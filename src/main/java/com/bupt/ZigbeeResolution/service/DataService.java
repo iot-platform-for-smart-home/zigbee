@@ -49,7 +49,7 @@ public class DataService {
                 if(snLength==0){
                     device.setSnid("");
                 }else {
-                    device.setSnid(byte2HexStr(Arrays.copyOfRange(bytes, 21+nameLength, 21+nameLength+snLength)));
+                    device.setSnid(bytesToAscii(Arrays.copyOfRange(bytes, 21+nameLength, 21+nameLength+snLength)));
                 }
                 device.setZoneType( byte2HexStr(Arrays.copyOfRange(bytes, 21+nameLength+snLength, 23+nameLength+snLength)));
                 device.setElectric(Double.valueOf(String.valueOf(bytes[23+nameLength+snLength])));

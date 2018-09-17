@@ -1,7 +1,10 @@
 package com.bupt.ZigbeeResolution.transform;
 
+import com.bupt.ZigbeeResolution.data.User;
+import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.service.DataService;
+import com.bupt.ZigbeeResolution.service.UserService;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -14,6 +17,8 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import java.util.Arrays;
 
 public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implements GenericFutureListener<Future<? super Void>> {
+    private UserService userService;
+    private HttpControl hc= new HttpControl();
     public static final ChannelGroup group = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     public static final ChannelGroup channelgroups = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     public final static String LoginControlMessage = "Login OK!\r\nControl Mode\r\nGateway online:";
@@ -28,9 +33,11 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     public static GatewayMethodImpl gatewayMethod = new GatewayMethodImpl();
 
-    public TransportHandler() {
-
+    public TransportHandler(UserService userService) {
+        this.userService = userService;
     }
+
+
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
@@ -89,9 +96,13 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         name = s.substring(6, 13);
                         pwd = s.substring(13, 17);
                     }
+                    User user = new User(name, pwd);
+
                     bt = getSendContent(10, LoginControlMessage.getBytes());
                     channelgroups.add(channel);
                     ch.writeAndFlush(bt);
+
+                    gatewayMethod.getAllDevice();
 
                 }
                 else  if (byteA3 == 12) {

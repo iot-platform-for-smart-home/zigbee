@@ -1,4 +1,4 @@
-package com.bupt.ZigbeeResolution.transform;
+/*package com.bupt.ZigbeeResolution.transform;
 
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -23,4 +23,4 @@ public class SocketServiceInitializer extends ChannelInitializer<SocketChannel>{
         pipeline.addLast(handler);
         socketChannel.closeFuture().addListener(handler);
     }
-}
+}*/

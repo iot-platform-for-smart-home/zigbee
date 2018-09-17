@@ -1,5 +1,6 @@
 package com.bupt.ZigbeeResolution.transform;
 
+import com.bupt.ZigbeeResolution.service.UserService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
@@ -10,70 +11,78 @@ import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class SocketServer {
-    private int port;
+
+    @Autowired
+    private UserService userService;
 
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
     private static Map<String, byte[]> messageMap = new ConcurrentHashMap<String, byte[]>();
-    public SocketServer(int port){
-        this.port = port;
-    }
 
-    public SocketServer(){}
+    private Channel serverChannel;
+    private EventLoopGroup bossGroup;
+    private EventLoopGroup workerGroup;
 
+    @Value("${socket.bind_address}")
+    private String host;
+    @Value("${socket.bind_port}")
+    private Integer port;
+//    @Value("${mqtt.adaptor}")
+//    private String adaptorName;
+
+    @Value("${socket.netty.leak_detector_level}")
+    private String leakDetectorLevel;
+    @Value("${socket.netty.boss_group_thread_count}")
+    private Integer bossGroupThreadCount;
+    @Value("${socket.netty.worker_group_thread_count}")
+    private Integer workerGroupThreadCount;
+
+    @PostConstruct
     public void start() throws Exception{
-        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
-        try {
-            ServerBootstrap b = new ServerBootstrap();
-            b.group(bossGroup, workerGroup)
-                    .channel(NioServerSocketChannel.class)
-                    .option(ChannelOption.SO_BACKLOG, 100)
-                    .handler(new LoggingHandler(LogLevel.INFO))
-                    .childHandler(new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        public void initChannel(SocketChannel ch)
-                                throws Exception {
-                            // Decoders
-                            //ch.pipeline().addLast("frameDecoder", new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
-                            ch.pipeline().addLast("bytesDecoder", new ByteArrayDecoder());
-                            // Encoder
-                            //ch.pipeline().addLast("frameEncoder", new LengthFieldPrepender(4));
-                            ch.pipeline().addLast("bytesEncoder", new ByteArrayEncoder());
-                            ch.pipeline().addLast(new OutBoundHandler());
-                            ch.pipeline().addLast(new IdleStateHandler(0,0,300), new TransportHandler());
-                        }
-                    });
-
+        bossGroup = new NioEventLoopGroup(bossGroupThreadCount);
+        workerGroup = new NioEventLoopGroup(workerGroupThreadCount);
+        ServerBootstrap b = new ServerBootstrap();
+        b.group(bossGroup, workerGroup)
+                .channel(NioServerSocketChannel.class)
+                .option(ChannelOption.SO_BACKLOG, 100)
+                .handler(new LoggingHandler(LogLevel.INFO))
+                .childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    public void initChannel(SocketChannel ch)
+                            throws Exception {
+                        // Decoders
+                        //ch.pipeline().addLast("frameDecoder", new LengthFieldBasedFrameDecoder(1048576, 0, 4, 0, 4));
+                        ch.pipeline().addLast("bytesDecoder", new ByteArrayDecoder());
+                        // Encoder
+                        //ch.pipeline().addLast("frameEncoder", new LengthFieldPrepender(4));
+                        ch.pipeline().addLast("bytesEncoder", new ByteArrayEncoder());
+                        ch.pipeline().addLast(new OutBoundHandler());
+                        ch.pipeline().addLast(new IdleStateHandler(0,0,300), new TransportHandler(userService));
+                    }
+                });
             //b.bind(port);
             // Start the server.
-            ChannelFuture f = b.bind(port).sync();
-            // Wait until the server socket is closed.
-            f.channel().closeFuture().sync();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            // Shut down all event loops to terminate all threads.
-            bossGroup.shutdownGracefully();
-            workerGroup.shutdownGracefully();
-            System.out.println("shutdown");
-        }
+            serverChannel = b.bind(port).sync().channel();
     }
 
-    /**
-     * @param args
-     * @throws Exception
-     */
-    public static void main(String args[]) throws Exception{
-        new SocketServer(8090).start();
-
-
+    @PreDestroy
+    public void shutdown() throws InterruptedException {
+        try {
+            serverChannel.close().sync();
+        } finally {
+            bossGroup.shutdownGracefully();
+            workerGroup.shutdownGracefully();
+        }
     }
 
     public static Map<String, Channel> getMap() {
