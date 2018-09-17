@@ -8,7 +8,7 @@ public class Device {
     byte Endpoint;
     String profileId;
     String deviceId;
-    boolean state;
+    Boolean state;
     String name;
     byte onlineState;
     String IEEE;
@@ -45,9 +45,5 @@ public class Device {
                 .append("\""+electric+"\"");
         sb.append('}');
         return sb.toString();
-    }
-
-    public boolean getState(){
-        return state;
     }
 }

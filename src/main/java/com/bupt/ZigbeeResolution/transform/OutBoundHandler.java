@@ -22,4 +22,6 @@ public class OutBoundHandler extends ChannelOutboundHandlerAdapter {
             });
 		}
 	}
+
+	public static void main(String[] args) {}
 }

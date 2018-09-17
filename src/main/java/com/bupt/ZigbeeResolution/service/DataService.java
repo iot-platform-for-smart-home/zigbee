@@ -3,11 +3,13 @@ package com.bupt.ZigbeeResolution.service;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.bupt.ZigbeeResolution.transform.TransportHandler;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.TransferQueue;
 
 public class DataService {
     private static List<Object> list = new LinkedList<Object>();
@@ -140,8 +142,19 @@ public class DataService {
                 gatewayMethod.groupMember_CallBack(groupId, shortAddresses, endPoints);
                 break;
 
-            case 0x0E:
+            case 0x0D:
                 Scene scene = new Scene();
+                scene.setSceneId(byte2HexStr(new byte[]{bytes[3], bytes[4]}));
+                int nameLen = (int) bytes[5];
+                byte[] nameByte = new byte[nameLen];
+                System.arraycopy(bytes,6, nameByte, 0, nameLen);
+                scene.setSceneName(byte2HexStr(nameByte));
+                System.out.println("完成解析");
+                // 添加场景,修改场景名的返回值一样
+                gatewayMethod.addScene_CallBack(scene);
+
+            case 0x0E:
+                scene = new Scene();
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 scene.setSceneId(byte2HexStr(Arrays.copyOfRange(bytes, 2, 4)));
                 int sceneNameLength = Integer.parseInt(String.valueOf(bytes[4]));
@@ -315,6 +328,54 @@ public class DataService {
                 System.out.println("完成解析");
                 gatewayMethod.deviceColourTemp_CallBack(shortAddress, endPoint, colourTemp);
                 break;
+
+
+            case 0x29:
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                switch(bytes[3]){
+                    // 更改设备名返回值
+                    case 0x03:
+                        shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 4, 6));
+                        endPoint = Integer.parseInt(String.valueOf(bytes[6]));
+                        String name = bytesToAscii(bytes, 8, Integer.parseInt(String.valueOf(bytes[7])));
+
+                        System.out.println("完成解析");
+                        gatewayMethod.changeDeviceName_CallBack(shortAddress, endPoint, name);
+                        break;
+
+                    case 0x04:
+                        switch(bytes[4]){
+                            case (byte) 0x95:
+                                gatewayMethod.deleteDevice_CallBack();
+                                break;
+                            case (byte) 0x82:
+                                gatewayMethod.setDeviceState_CallBack();
+                                break;
+                            case (byte) 0x83:
+                                gatewayMethod.setDeviceLevel_CallBack();
+                                break;
+                            case (byte) 0x84:
+                                gatewayMethod.setDeviceHueAndSat_CallBack();
+                                break;
+                            case (byte) 0x92:
+                                gatewayMethod.callScene_CallBack();
+                                break;
+                            case (byte) 0x9E:
+                                gatewayMethod.setReportTime_CallBack();
+                                break;
+                            case (byte) 0xA8:
+                                gatewayMethod.setColorTemperature_CallBack();
+                                break;
+                        }
+                    case (byte)0x93:
+                        device = new Device();
+                        device.setShortAddress(byte2HexStr(new byte[]{bytes[5], bytes[6]}));
+                        device.setEndpoint(bytes[7]);
+                        byte[] data = new byte[4];
+                        System.arraycopy(bytes, 8, data, 0, 4);
+                        String dataStr = byte2HexStr(data);
+                        gatewayMethod.getDeviceInfo_CallBack(device, dataStr);
+                }
 
             case (byte)0xAF:
                 Group newGroupName = new Group();

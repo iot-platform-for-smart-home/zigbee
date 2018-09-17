@@ -11,7 +11,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     public void getAllDevice() throws Exception {
         byte[] bytes = new byte[8];
-        //TransportHandler.response = 0x01;
 
         int index = 0;
         bytes[index++] = (byte) 0x08;
@@ -29,7 +28,6 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     public void getGatewayInfo() throws Exception{
         byte[] bytes = new byte[8];
-        //TransportHandler.response = 0x01;
 
         int index = 0;
         bytes[index++] = (byte) 0x08;
@@ -195,6 +193,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     public void getScene(){
+        System.out.print("获取场景 => ");
         byte[] bytes = new byte[8];
         //TransportHandler.response = 0x01;
 
@@ -213,10 +212,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     public void getSceneDetail(Scene scene){
-        byte[] bytes = new byte[TransportHandler.toBytes(scene.getSceneName()).length+12];
+        System.out.print("获取场景详细信息 => ");
+        byte[] bytes = new byte[scene.getSceneName().getBytes().length + 12];
 
         int index = 0;
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+12));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length+12));
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFF;
@@ -224,10 +224,10 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0x8A;
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+4));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length+4));
         System.arraycopy(TransportHandler.toBytes(scene.getSceneId()), 0, bytes, index, TransportHandler.toBytes(scene.getSceneId()).length);
         index=index+TransportHandler.toBytes(scene.getSceneId()).length;
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length));
         System.arraycopy(scene.getSceneName().getBytes(), 0, bytes, index, scene.getSceneName().getBytes().length);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
@@ -347,7 +347,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     public void setGroupName(Group group,String name){
-        byte[] bytes = new byte[TransportHandler.toBytes(name).length+12];
+        byte[] bytes = new byte[name.getBytes().length+12];
 
         int index = 0;
         bytes[index++] = (byte) (0xFF & (name.getBytes().length+12));
@@ -362,11 +362,358 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         System.arraycopy(TransportHandler.toBytes(group.getGroupId()), 0, bytes, index, TransportHandler.toBytes(group.getGroupId()).length);
         index=index+TransportHandler.toBytes(group.getGroupId()).length;
         bytes[index++] = (byte) (0xFF & (name.getBytes().length));
-        System.arraycopy(TransportHandler.toBytes(name), 0, bytes, index, TransportHandler.toBytes(name).length);
+        System.arraycopy(name.getBytes(), 0, bytes, index, name.getBytes().length);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
+
+
+    public void changeDeviceName(Device device, String name){
+        byte[] bytes = new byte[name.getBytes().length+13];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (name.getBytes().length + 13));
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x94;
+        bytes[index++] = (byte) (0xFF & (name.getBytes().length + 4));
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte)(0xFF & name.getBytes().length);
+        System.arraycopy(name.getBytes(),0, bytes, index, name.getBytes().length);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    public void deleteDevice(Device device){
+        byte[] bytes = new byte[21];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x15;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x95;
+        bytes[index++] = (byte) 0x0C;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        System.arraycopy(TransportHandler.toBytes(device.getIEEE()), 0, bytes, index, TransportHandler.toBytes(device.getIEEE()).length);
+        index = index + TransportHandler.toBytes(device.getIEEE()).length;
+        bytes[index] = device.getEndpoint();
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    public void setDeviceState(Device device, byte state) {
+        byte[] bytes = new byte[22];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x16;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x82;
+        bytes[index++] = (byte) 0x0D;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index=index+TransportHandler.toBytes(device.getShortAddress()).length;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        bytes[index] = state;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void setDeviceLevel(Device device, byte value, int transition) {
+        byte[] bytes = new byte[24];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x18;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x83;
+        bytes[index++] = (byte) 0x0F;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = value;
+        bytes[index++] = (byte) (0xFF & (byte)transition);
+        bytes[index] = (byte) (0xFF & ((byte)(transition) >> 8));
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    public void setDeviceHueAndSat(Device device, byte hue, byte sat, int transition) {
+        byte[] bytes = new byte[25];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x19;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x84;
+        bytes[index++] = (byte) 0x10;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index=index+TransportHandler.toBytes(device.getShortAddress()).length;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = hue;
+        bytes[index++] = sat;
+        bytes[index++] = (byte) (0xFF & transition);
+        bytes[index] = (byte) (0xFF & (transition >> 8 ) );
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void addScene(Device device, byte state, byte data2, byte data3, byte data4, String sceneName, byte irId, int transition, byte funcId) {
+        System.out.print("添加场景 => ");
+        byte[] bytes = new byte[31 + sceneName.getBytes().length];
+
+        int index = 0;
+        bytes[index++] = (byte) (31 + sceneName.getBytes().length);
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x91;
+        bytes[index++] = (byte) (23 + sceneName.getBytes().length);
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, 2);
+        index = index + 2;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        System.arraycopy(TransportHandler.toBytes(device.getDeviceId()), 0, bytes, index, TransportHandler.toBytes(device.getDeviceId()).length);
+        index = index + TransportHandler.toBytes(device.getDeviceId()).length;
+        bytes[index++] = state;
+        bytes[index++] = data2;
+        bytes[index++] = data3;
+        bytes[index++] = data4;
+        bytes[index++] = (byte)sceneName.getBytes().length;
+        System.arraycopy(sceneName.getBytes(), 0, bytes, index, sceneName.getBytes().length);
+        index = index + sceneName.getBytes().length;
+        bytes[index++] = irId;
+        bytes[index++] = (byte)(0xFF & transition);
+        bytes[index] = funcId;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void addScene(Device device, byte state, byte data2, byte data3, byte data4, String sceneName, byte irId, int transition) {
+        System.out.print("添加场景 => ");
+        byte[] bytes = new byte[30 + sceneName.getBytes().length];
+
+        int index = 0;
+        bytes[index++] = (byte) (30 + sceneName.getBytes().length);
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x91;
+        bytes[index++] = (byte) (22 + sceneName.getBytes().length);
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index+TransportHandler.toBytes(device.getShortAddress()).length;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        System.arraycopy(TransportHandler.toBytes(device.getDeviceId()), 0, bytes, index, TransportHandler.toBytes(device.getDeviceId()).length);
+        index = index + TransportHandler.toBytes(device.getDeviceId()).length;
+        bytes[index++] = state;
+        bytes[index++] = data2;
+        bytes[index++] = data3;
+        bytes[index++] = data4;
+        bytes[index++] = (byte)sceneName.getBytes().length;
+        System.arraycopy(sceneName.getBytes(), 0, bytes, index, sceneName.getBytes().length);
+        index = index + sceneName.getBytes().length;
+        bytes[index++] = irId;
+        bytes[index] = (byte)transition;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void callScene(String sceneId) {
+        System.out.print("调用场景 => ");
+        byte[] bytes = new byte[11];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x0B;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x92;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(sceneId), 0, bytes, index, 2);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void getDeviceInfo(Device device) {
+        byte[] bytes = new byte[21];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x15;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i ++) {
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x93;
+        bytes[index++] = (byte) 0x0C;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        for(int i = 0; i < 8; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index] = (byte) 0x00;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void changeSceneName(String sceneId, String name) {
+        byte[] bytes = new byte[12 + name.getBytes().length];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (12 + name.getBytes().length));
+        bytes[index++] = (byte) ((0xFF00 & (12 + name.getBytes().length)) >> 8);
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x8C;
+        bytes[index++] = (byte) (3 + name.getBytes().length);
+        System.arraycopy(TransportHandler.toBytes(sceneId), 0, bytes, index, 2);
+        index = index + 2;
+        bytes[index++] = (byte) name.getBytes().length;
+        System.arraycopy(name.getBytes(), 0, bytes, index, name.getBytes().length);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void setReportTime(Device device, String clusterId, String attribId, String dataType, int transition) {
+        byte[] bytes = new byte[30];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x1E;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x9E;
+        bytes[index++] = (byte) 0x16;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, 2);
+        index = index + 2;
+        for (int i = 0; i < 8; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        for (int i = 0; i < 2; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        System.arraycopy(TransportHandler.toBytes(attribId), 0, bytes, index, 2);
+        index = index + 2;
+        System.arraycopy(TransportHandler.toBytes(attribId), 0, bytes, index, 2);
+        index = index + 2;
+        bytes[index++] = (byte) 0x21;
+        bytes[index++] = (byte) (0xFF & transition);
+        bytes[index] = (byte) ((0xFF00 & transition) >> 8);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void setColorTemperature(Device device, int value, int transition) {
+        byte[] bytes = new byte[25];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x18;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA8;
+        bytes[index++] = (byte) 0x0F;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, 2);
+        index = index + 2;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        for (int i = 0; i < 2; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = (byte) (0xFF & value);
+        bytes[index++] = (byte) ((0xFF00 & value) >> 8);
+        bytes[index++] = (byte) (0xFF & transition);
+        bytes[index] = (byte) ((0xFF00 & transition) >> 8);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
     @Override
     public void device_CallBack(Device device){
         System.out.println(device.toString());
@@ -461,5 +808,62 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void setGroupName_CallBack(Group group){
         System.out.println(group.toString());
+    }
+
+    @Override
+    public void changeDeviceName_CallBack(String shortAddress, int endPoint, String name){
+        System.out.println("shortAddress:" + shortAddress + " | "
+                            + "endPoint:" + endPoint + " | "
+                            + "newName:" + name);
+    }
+
+    @Override
+    public void deleteDevice_CallBack(){
+        System.out.println("delete succeed! ");
+    }
+
+    @Override
+    public void setDeviceState_CallBack(){
+        System.out.println("change Device Status succeed! ");
+    }
+
+    @Override
+    public void setDeviceLevel_CallBack() {
+        System.out.println("set device level succeed! ");
+    }
+
+    @Override
+    public void setDeviceHueAndSat_CallBack() {
+        System.out.println("set Device Hue and sat succeed!");
+    }
+
+    @Override
+    public void addScene_CallBack(Scene scene) {
+        System.out.println(scene.toString());
+    }
+
+    @Override
+    public void callScene_CallBack() {
+        System.out.println("call scene succeed! ");
+    }
+
+    @Override
+    public void getDeviceInfo_CallBack(Device device, String data) {
+        System.out.println(device.toString() + "data: "+ data               );
+    }
+
+    @Override
+    public void changeSceneName_CallBack(Scene scene) {
+        System.out.println(scene.toString());
+    }
+
+    @Override
+    public void setReportTime_CallBack() {
+        System.out.println("set report time succeed!");
+    }
+
+    @Override
+    public void setColorTemperature_CallBack() {
+        System.out.println("set device color and Temperature succeed!");
     }
 }
