@@ -1,6 +1,7 @@
 package com.bupt.ZigbeeResolution.method;
 
 import com.bupt.ZigbeeResolution.data.*;
+import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 
 public interface GatewayMethod {
   void getAllDevice() throws Exception;
@@ -76,7 +77,7 @@ public interface GatewayMethod {
   void setColorTemperature(Device device, int  value, int transition);
 
 
-  void device_CallBack(Device device);
+  void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception;
 
   void gateway_CallBack(Gateway gateway);
 

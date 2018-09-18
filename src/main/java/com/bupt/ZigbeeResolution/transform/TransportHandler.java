@@ -1,9 +1,14 @@
 package com.bupt.ZigbeeResolution.transform;
 
+import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
+import com.bupt.ZigbeeResolution.data.GatewayGroup;
 import com.bupt.ZigbeeResolution.data.User;
 import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.bupt.ZigbeeResolution.mqtt.RpcMqttClient;
 import com.bupt.ZigbeeResolution.service.DataService;
+import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
+import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.UserService;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -18,6 +23,9 @@ import java.util.Arrays;
 
 public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implements GenericFutureListener<Future<? super Void>> {
     private UserService userService;
+    private GatewayGroupService gatewayGroupService;
+    private DeviceTokenRelationService deviceTokenRelationService;
+
     private HttpControl hc= new HttpControl();
     public static final ChannelGroup group = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     public static final ChannelGroup channelgroups = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -33,8 +41,10 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     public static GatewayMethodImpl gatewayMethod = new GatewayMethodImpl();
 
-    public TransportHandler(UserService userService) {
+    public TransportHandler(UserService userService, GatewayGroupService gatewayGroupService, DeviceTokenRelationService deviceTokenRelationService) {
         this.userService = userService;
+        this.gatewayGroupService = gatewayGroupService;
+        this.deviceTokenRelationService = deviceTokenRelationService;
     }
 
 
@@ -58,13 +68,14 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         group.add(channel);
     }
 
-
     @Override
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // ɾ��Channel Map�е�ʧЧClient
+        String ip =getRemoteAddress(ctx);
+        System.out.println("设备下线:"+ip.substring(1, ip.length() - 6));
+        gatewayGroupService.removeGatewayGroupByIp(ip.substring(1, ip.length() - 6));
         SocketServer.getMap().remove(getIPString(ctx));
         ctx.close().sync();
-
     }
 
     @Override
@@ -97,6 +108,26 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         pwd = s.substring(13, 17);
                     }
                     User user = new User(name, pwd);
+                    GatewayGroup gatewayGroup = new GatewayGroup(name, ips, ctxip);
+                    if(gatewayGroupService.getGatewayGroup(name)!=null){
+                        gatewayGroupService.removeGatewayGroupByName(name);
+                    }
+                    gatewayGroupService.addGatewayGroup(gatewayGroup);
+
+                    //TODO 暂不可用
+                    DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySnidAndEndPoint(name, 1);
+                    if(deviceTokenRelation == null){
+                        String token = null;
+                        hc.httplogin();
+                        String id = hc.httpcreate("Gateway_"+name, "0");
+                        token = hc.httpfind(id);
+                        DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(name, 1, token,"Gateway", name,"0000");
+                        deviceTokenRelationService.addARelation(newDeviceTokenRelation);
+                        RpcMqttClient.init(newDeviceTokenRelation.getToken());
+                    }else{
+                        RpcMqttClient.init(deviceTokenRelation.getToken());
+                    }
+
 
                     bt = getSendContent(10, LoginControlMessage.getBytes());
                     channelgroups.add(channel);
@@ -117,8 +148,8 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         DataService.setStatetrue();
                         response = 0x00;
                     }*/
-
-                    dataService.resolution(body);
+                    String gatewayName = gatewayGroupService.getGatewayNameByIp(ips);
+                    dataService.resolution(body, gatewayName, deviceTokenRelationService);
                     //chs.writeAndFlush(msg);
                 }
             }

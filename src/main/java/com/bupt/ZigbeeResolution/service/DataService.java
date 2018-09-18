@@ -3,13 +3,11 @@ package com.bupt.ZigbeeResolution.service;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
-import com.bupt.ZigbeeResolution.transform.TransportHandler;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TransferQueue;
 
 public class DataService {
     private static List<Object> list = new LinkedList<Object>();
@@ -27,7 +25,7 @@ public class DataService {
 
 
 
-    public void resolution(byte[] bytes) {
+    public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
         System.out.println("进入");
         byte Response = bytes[0];
         switch (Response){
@@ -57,7 +55,7 @@ public class DataService {
                 device.setElectric(Double.valueOf(String.valueOf(bytes[23+nameLength+snLength])));
                 device.setRecentState(Arrays.copyOfRange(bytes, length-4, length));
                 System.out.println("完成解析");
-                gatewayMethod.device_CallBack(device);
+                gatewayMethod.device_CallBack(device, gatewayName, deviceTokenRelationService);
                 break;
 
             case 0x15:
@@ -440,5 +438,47 @@ public class DataService {
                 | ((src[2] & 0xFF)<<16)
                 | ((src[3] & 0xFF)<<24));
         return value;
+    }
+
+    public static String deviceId2Type(String deviceId){
+        String type = null;
+        switch (deviceId){
+            case "0000":
+                break;
+            case "0100":
+                break;
+            case "0200":
+                type = "switch";
+                break;
+            case "0300":
+                break;
+            case "0400":
+                type = "sceneSelector";
+                break;
+            case "0500":
+                break;
+            case "0600":
+                break;
+            case "0700":
+                break;
+            case "0800":
+                break;
+            case "0900":
+                type = "outlet";
+                break;
+            case "0101":
+                type = "dimmableLight";
+                break;
+            case "0203":
+                type = "temperature";
+                break;
+            case "0903":
+                type = "PM2.5";
+                break;
+            case "0204":
+                type = "IASZone";
+                break;
+        }
+        return type;
     }
 }

@@ -1,5 +1,7 @@
 package com.bupt.ZigbeeResolution.transform;
 
+import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
+import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.UserService;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -25,6 +27,12 @@ public class SocketServer {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private GatewayGroupService gatewayGroupService;
+
+    @Autowired
+    private DeviceTokenRelationService deviceTokenRelationService;
 
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
     private static Map<String, byte[]> messageMap = new ConcurrentHashMap<String, byte[]>();
@@ -67,7 +75,7 @@ public class SocketServer {
                         //ch.pipeline().addLast("frameEncoder", new LengthFieldPrepender(4));
                         ch.pipeline().addLast("bytesEncoder", new ByteArrayEncoder());
                         ch.pipeline().addLast(new OutBoundHandler());
-                        ch.pipeline().addLast(new IdleStateHandler(0,0,300), new TransportHandler(userService));
+                        ch.pipeline().addLast(new IdleStateHandler(0,0,300), new TransportHandler(userService,gatewayGroupService,deviceTokenRelationService));
                     }
                 });
             //b.bind(port);

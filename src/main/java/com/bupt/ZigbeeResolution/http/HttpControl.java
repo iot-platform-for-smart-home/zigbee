@@ -1,7 +1,9 @@
 package com.bupt.ZigbeeResolution.http;
 
-import com.bupt.ZigbeeResolution.data.User;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import okhttp3.*;
+import org.json.simple.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,34 +35,90 @@ public class HttpControl {
             })
             .build();
 
-    public void httpregister(User user) throws IOException {
-        RequestBody registerBody = RequestBody.create(js,"{\"userName\":\""+user.getUserName()+"\",\"passwd\":\""+user.getPasswd()+"\",\"wechatName\":\"\",\"role\":1}");
+    public void httplogin() throws IOException {
+        RequestBody loginBody = RequestBody.create(js, "{\"userName\":\"Gantch@bupt.edu.cn\",\"passwd\":\"password\"}");
 
-        System.out.println("{\"userName\":\""+user.getUserName()+"\",\"passwd\":\""+user.getPasswd()+"\",\"wechatName\":\"\",\"role\",1}");
-        final Request requestRegister = new Request.Builder()
-                .url("http://10.108.218.64:30080/api/v1/account/register")
-                .header("Accept","text/plain, */*; q=0.01")
-                .addHeader("Connection","keep-alive")
-                .addHeader("User-Agent","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36")
-                .addHeader("Content-Type","application/json; charset=UTF-8")
-                .post(registerBody)
-                .build();
+        final Request requestRegister = new Request.Builder().url("http://10.108.218.64/api/user/login").header("Accept", "text/plain, */*; q=0.01").addHeader("Connection", "keep-alive").addHeader("Content-Type", "application/json; charset=UTF-8").post(loginBody).build();
 
         Response response = mOkHttpClient.newCall(requestRegister).execute();
-        Call call = mOkHttpClient.newCall(requestRegister);
-        //请求加入调度
-        call.enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
+        if (response.isSuccessful()) {
+            Headers headers = response.headers();
+            ck = cookieStore.get(host).get(0);
 
-            }
+            String sessionStr = ck.toString();
+            session = sessionStr.substring(0, sessionStr.indexOf(";"));
 
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                System.out.println(response.body().string());
-            }
-        });
-
-
+            System.out.println("Login ck is :" + ck);
+            System.out.println("Login session is :" + session);
+        }
     }
+ /*
+    创建新设备的post请求
+     */
+
+    public String httpcreate(String devicename,String gatewayName) throws Exception{
+
+        //请求体
+        JSONObject obj = new JSONObject();
+        obj.put("name",devicename);
+        obj.put("lifetime", "NaN");
+        if(!gatewayName.equals("0")) {
+            obj.put("parentDeviceId", "Gateway_" + gatewayName);
+        }
+        RequestBody bodyCreate = RequestBody.create(js, obj.toString());
+
+        //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。
+        Request requestCreate = new Request.Builder()
+                .url("http://10.108.218.64/api/device/create")
+                .post(bodyCreate)
+                .addHeader("Accept","application/json, text/plain, */*")
+//                .addHeader("Accept","text/plain, */*, q=0.01")
+                .addHeader("Connection","keep-alive")
+                .addHeader("Content-Type","application/json;charset=UTF-8")
+                .addHeader("Cookie",session.toString())
+                .build();
+            //得到一个call对象
+        Response response = mOkHttpClient.newCall(requestCreate).execute();
+        if (response.isSuccessful()){
+            String result = response.body().string();
+
+            JsonObject jsonObject = new JsonParser().parse(result).getAsJsonObject();
+            id = jsonObject.get("id").getAsString();
+            System.out.println("id is :"+id);
+            return id;
+        }else{
+            httplogin();
+            return null;
+        }
+    }
+
+    /*
+    查找令牌的get请求
+     */
+
+    public String httpfind(String id)throws Exception {
+
+        //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。
+        Request requestCreate = new Request.Builder()
+                .url("http://39.104.84.131/api/device/token/" + id.toString())
+                .get()
+                .addHeader("Accept", "application/json, text/plain, */*")
+                .addHeader("Connection", "keep-alive")
+                .addHeader("Cookie", session.toString())
+                .build();
+        //得到一个call对象
+        Response response = mOkHttpClient.newCall(requestCreate).execute();
+        if (response.isSuccessful()) {
+
+            String result = response.body().string();
+//           Log.e("http", "find_response : " + result);
+
+            JsonObject jsonObject = new JsonParser().parse(result).getAsJsonObject();
+            deviceToken = jsonObject.get("deviceToken").getAsString();
+            System.out.println("find_token is :"+deviceToken);
+            return deviceToken;
+        }
+        return null;
+    }
+
 }

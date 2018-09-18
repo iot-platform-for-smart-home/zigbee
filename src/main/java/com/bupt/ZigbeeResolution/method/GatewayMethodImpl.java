@@ -1,11 +1,16 @@
 package com.bupt.ZigbeeResolution.method;
 
 import com.bupt.ZigbeeResolution.data.*;
+import com.bupt.ZigbeeResolution.http.HttpControl;
+import com.bupt.ZigbeeResolution.service.DataService;
+import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
 
 public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod{
+
+    HttpControl httpControl = new HttpControl();
 
     byte[] sendMessage =  new byte[1024];
 
@@ -715,8 +720,29 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void device_CallBack(Device device){
+    public void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
         System.out.println(device.toString());
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySnidAndEndPoint(device.getSnid(), Integer.parseInt(String.valueOf(device.getEndpoint())));
+        if(deviceTokenRelation == null){
+            String token = null;
+            String type = DataService.deviceId2Type(device.getDeviceId());
+            Integer deviceNumber = deviceTokenRelationService.getDeviceNumber(gatewayName, type);
+            httpControl.httplogin();
+            String id = httpControl.httpcreate(type+"_"+gatewayName+"_"+deviceNumber.toString(), "Gateway_"+gatewayName);
+            token = httpControl.httpfind(id);
+
+            DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress());
+            deviceTokenRelationService.addARelation(newDeviceTokenRelation);
+        }else{
+            if(!device.getShortAddress().equals(deviceTokenRelation.getShortAddress())){
+                deviceTokenRelationService.updateShortAddress(device.getShortAddress(), device.getIEEE());
+            }
+            if(!gatewayName.equals(deviceTokenRelation.getGatewayName())){
+                deviceTokenRelationService.updateGatewayName(gatewayName, device.getIEEE());
+                //TODO 向平台发送变更父设备的请求
+            }
+        }
+
     }
 
     @Override
