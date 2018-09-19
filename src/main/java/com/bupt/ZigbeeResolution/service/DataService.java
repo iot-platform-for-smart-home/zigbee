@@ -5,9 +5,12 @@ import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 
 import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DataService {
     private static List<Object> list = new LinkedList<Object>();
@@ -373,7 +376,9 @@ public class DataService {
                         System.arraycopy(bytes, 8, data, 0, 4);
                         String dataStr = byte2HexStr(data);
                         gatewayMethod.getDeviceInfo_CallBack(device, dataStr);
+                        break;
                 }
+                break;
 
             case (byte)0xAF:
                 Group newGroupName = new Group();
@@ -389,6 +394,52 @@ public class DataService {
                 gatewayMethod.setGroupName_CallBack(newGroupName);
                 break;
 
+            case 0x70:
+                //TODO 设备主动上报（目前只做实验室温湿度传感器和PM2.5传感器）
+                Double temperature;
+                Integer humidity;
+                Integer pm;
+                Map<String, Double> data = new ConcurrentHashMap<String, Double>();
+
+                length = Integer.parseInt(String.valueOf(bytes[1]));
+                String shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
+                Integer endPoint = Integer.parseInt(String.valueOf(bytes[4]));
+                String clusterId = byte2HexStr(Arrays.copyOfRange(bytes, 5, 7));
+                switch(clusterId){
+                    case "0204":
+                        for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++){
+                            if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("0000")){
+                                if(bytes[10+i*5] == 0x29) {
+                                    //System.out.println(dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5)));
+                                    BigDecimal b = new BigDecimal((double)dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5))/(double) 100);
+                                    temperature = b.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
+                                    //System.out.println(temperature);
+                                    data.put("temperature", temperature);
+                                }
+                            }else if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("1100")){
+                                if(bytes[10+i*5] == 0x29) {
+                                    humidity = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                    data.put("humidity" , humidity.doubleValue());
+                                }
+                            }
+                        }
+
+                        break;
+                    case "1504":
+                        for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
+                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0000")) {
+                                if (bytes[10 + i * 5] == 0x21) {
+                                    pm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                    data.put("PM2.5", pm.doubleValue());
+                                }
+                            }
+                        }
+                        break;
+                    case "EEFB":
+                        break;
+                }
+                gatewayMethod.data_CallBack(shortAddress, endPoint, data, deviceTokenRelationService);
+                break;
         }
         System.out.println("完成");
     }
@@ -437,6 +488,13 @@ public class DataService {
                 | ((src[1] & 0xFF)<<8)
                 | ((src[2] & 0xFF)<<16)
                 | ((src[3] & 0xFF)<<24));
+        return value;
+    }
+
+    public static int dataBytesToInt(byte[] src) {
+        int value;
+        value = (int) ((src[0] & 0xFF)
+                | ((src[1] & 0xFF)<<8));
         return value;
     }
 

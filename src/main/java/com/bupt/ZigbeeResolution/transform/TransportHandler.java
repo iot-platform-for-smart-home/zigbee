@@ -5,7 +5,6 @@ import com.bupt.ZigbeeResolution.data.GatewayGroup;
 import com.bupt.ZigbeeResolution.data.User;
 import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
-import com.bupt.ZigbeeResolution.mqtt.RpcMqttClient;
 import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
@@ -115,17 +114,17 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     gatewayGroupService.addGatewayGroup(gatewayGroup);
 
                     //TODO 暂不可用
-                    DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySnidAndEndPoint(name, 1);
+                    DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(name, 1);
                     if(deviceTokenRelation == null){
                         String token = null;
-                        hc.httplogin();
+                        //hc.httplogin();
                         String id = hc.httpcreate("Gateway_"+name, "0");
                         token = hc.httpfind(id);
                         DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(name, 1, token,"Gateway", name,"0000");
                         deviceTokenRelationService.addARelation(newDeviceTokenRelation);
-                        RpcMqttClient.init(newDeviceTokenRelation.getToken());
+                        //RpcMqttClient.init(newDeviceTokenRelation.getToken());
                     }else{
-                        RpcMqttClient.init(deviceTokenRelation.getToken());
+                        //RpcMqttClient.init(deviceTokenRelation.getToken());
                     }
 
 
@@ -133,7 +132,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     channelgroups.add(channel);
                     ch.writeAndFlush(bt);
 
-                    gatewayMethod.getAllDevice();
+                    gatewayMethod.getAllDevice(ips);
 
                 }
                 else  if (byteA3 == 12) {

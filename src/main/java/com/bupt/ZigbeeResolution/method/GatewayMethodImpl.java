@@ -2,11 +2,15 @@ package com.bupt.ZigbeeResolution.method;
 
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.http.HttpControl;
+import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
 import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
+import com.google.gson.Gson;
+
+import java.util.Map;
 
 public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod{
 
@@ -14,7 +18,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
     byte[] sendMessage =  new byte[1024];
 
-    public void getAllDevice() throws Exception {
+    public void getAllDevice(String ip) throws Exception {
         byte[] bytes = new byte[8];
 
         int index = 0;
@@ -28,7 +32,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = (byte) 0x81;
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void getGatewayInfo() throws Exception{
@@ -722,12 +726,12 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
         System.out.println(device.toString());
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySnidAndEndPoint(device.getSnid(), Integer.parseInt(String.valueOf(device.getEndpoint())));
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())));
         if(deviceTokenRelation == null){
             String token = null;
             String type = DataService.deviceId2Type(device.getDeviceId());
             Integer deviceNumber = deviceTokenRelationService.getDeviceNumber(gatewayName, type);
-            httpControl.httplogin();
+            //httpControl.httplogin();
             String id = httpControl.httpcreate(type+"_"+gatewayName+"_"+deviceNumber.toString(), "Gateway_"+gatewayName);
             token = httpControl.httpfind(id);
 
@@ -891,5 +895,13 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void setColorTemperature_CallBack() {
         System.out.println("set device color and Temperature succeed!");
+    }
+
+    @Override
+    public void data_CallBack(String shortAddress, int endPoint, Map<String,Double> data, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+        Gson gson = new Gson();
+        String jsonStr = gson.toJson(data);
+        DataMessageClient.publishData(deviceTokenRelation.getToken(),jsonStr);
     }
 }

@@ -11,14 +11,17 @@ public interface DeviceTokenRelationMapper {
     Integer addARelation(DeviceTokenRelation deviceTokenRelation);
 
     @Select("SELECT * FROM deviceTokenRelation WHERE IEEE = #{IEEE} AND endPoint = #{endPoint}")
-    DeviceTokenRelation getRelotionBySnidAndEndPoint(String IEEE, Integer endPoint);
+    DeviceTokenRelation getRelotionByIEEEAndEndPoint(@Param("IEEE") String IEEE, @Param("endPoint")Integer endPoint);
+
+    @Select("SELECT * FROM deviceTokenRelation WHERE shortAddress = #{shortAddress} AND endPoint = #{endPoint}")
+    DeviceTokenRelation getRelotionBySAAndEndPoint(@Param("shortAddress") String shortAddress, @Param("endPoint")Integer endPoint);
 
     @Select("SELECT count(*) FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = #{type}")
-    Integer getdeviceNumber(String gatewayName, String type);
+    Integer getdeviceNumber(@Param("gatewayName") String gatewayName, @Param("type") String type);
 
     @Update("UPDATE deviceTokenRelation SET shortAddress = #{shortAddress} WHERE IEEE = #{IEEE}")
-    Integer updateShortAddress(String shortAddress, String IEEE);
+    Integer updateShortAddress(@Param("shortAddress")String shortAddress, @Param("IEEE")String IEEE);
 
     @Update("UPDATE deviceTokenRelation SET gatewayName = #{gatewayName} WHERE IEEE = #{IEEE}")
-    Integer updateGatewayName(String gatewayName, String IEEE);
+    Integer updateGatewayName(@Param("gatewayName")String gatewayName,@Param("IEEE") String IEEE);
 }

@@ -3,8 +3,10 @@ package com.bupt.ZigbeeResolution.method;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 
+import java.util.Map;
+
 public interface GatewayMethod {
-  void getAllDevice() throws Exception;
+  void getAllDevice(String ip) throws Exception;
 
   void getGatewayInfo() throws Exception;
 
@@ -134,4 +136,6 @@ public interface GatewayMethod {
   void setReportTime_CallBack();
 
   void setColorTemperature_CallBack();
+
+  void data_CallBack(String shortAddress, int endPoint, Map<String,Double> data, DeviceTokenRelationService deviceTokenRelationService) throws Exception;
 }

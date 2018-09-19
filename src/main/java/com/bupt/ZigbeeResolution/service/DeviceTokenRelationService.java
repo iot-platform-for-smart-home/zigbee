@@ -11,8 +11,8 @@ public class DeviceTokenRelationService {
     @Autowired
     private DeviceTokenRelationMapper deviceTokenRelationMapper;
 
-    public DeviceTokenRelation getRelotionBySnidAndEndPoint(String IEEE, Integer endPoint){
-        return deviceTokenRelationMapper.getRelotionBySnidAndEndPoint(IEEE, endPoint);
+    public DeviceTokenRelation getRelotionByIEEEAndEndPoint(String IEEE, Integer endPoint){
+        return deviceTokenRelationMapper.getRelotionByIEEEAndEndPoint(IEEE, endPoint);
     }
 
     public Boolean addARelation(DeviceTokenRelation deviceTokenRelation){
@@ -30,5 +30,9 @@ public class DeviceTokenRelationService {
 
     public Integer updateGatewayName(String gatewayName, String IEEE){
         return deviceTokenRelationMapper.updateShortAddress(gatewayName, IEEE);
+    }
+
+    public  DeviceTokenRelation getRelotionBySAAndEndPoint(String shortAddress, Integer endPoint){
+        return deviceTokenRelationMapper.getRelotionBySAAndEndPoint(shortAddress, endPoint);
     }
 }

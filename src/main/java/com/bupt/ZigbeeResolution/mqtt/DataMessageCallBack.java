@@ -9,7 +9,7 @@ public class DataMessageCallBack implements MqttCallback{
 	@Override
 	public void connectionLost(Throwable arg0) {
 		// TODO Auto-generated method stub
-		RpcMqttClient.init();
+		//RpcMqttClient.init();
 	}
 
 	@Override

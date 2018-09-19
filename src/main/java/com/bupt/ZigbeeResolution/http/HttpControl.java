@@ -61,7 +61,8 @@ public class HttpControl {
         //请求体
         JSONObject obj = new JSONObject();
         obj.put("name",devicename);
-        obj.put("lifetime", "NaN");
+        //obj.put("lifetime", "NaN");
+        obj.put("tenantId",2);
         if(!gatewayName.equals("0")) {
             obj.put("parentDeviceId", "Gateway_" + gatewayName);
         }
@@ -69,25 +70,27 @@ public class HttpControl {
 
         //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。
         Request requestCreate = new Request.Builder()
-                .url("http://10.108.218.64/api/device/create")
+                .url("http://10.108.218.64:30080/api/v1/deviceaccess/device")
                 .post(bodyCreate)
                 .addHeader("Accept","application/json, text/plain, */*")
 //                .addHeader("Accept","text/plain, */*, q=0.01")
                 .addHeader("Connection","keep-alive")
                 .addHeader("Content-Type","application/json;charset=UTF-8")
-                .addHeader("Cookie",session.toString())
+                //.addHeader("Cookie",session.toString())
                 .build();
             //得到一个call对象
         Response response = mOkHttpClient.newCall(requestCreate).execute();
         if (response.isSuccessful()){
             String result = response.body().string();
+            System.out.println(result);
 
             JsonObject jsonObject = new JsonParser().parse(result).getAsJsonObject();
             id = jsonObject.get("id").getAsString();
             System.out.println("id is :"+id);
             return id;
         }else{
-            httplogin();
+            //httplogin();
+            System.out.println(response.body().string());
             return null;
         }
     }
@@ -100,11 +103,11 @@ public class HttpControl {
 
         //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。
         Request requestCreate = new Request.Builder()
-                .url("http://39.104.84.131/api/device/token/" + id.toString())
+                .url("http://10.108.218.64:30080/api/v1/deviceaccess/credentialbyid/" + id.toString())
                 .get()
                 .addHeader("Accept", "application/json, text/plain, */*")
                 .addHeader("Connection", "keep-alive")
-                .addHeader("Cookie", session.toString())
+                //.addHeader("Cookie", session.toString())
                 .build();
         //得到一个call对象
         Response response = mOkHttpClient.newCall(requestCreate).execute();

@@ -21,4 +21,14 @@ public class DeviceTokenRelation {
         this.shortAddress = shortAddress;
     }
 
+    public DeviceTokenRelation(Integer id, String IEEE, Integer endPoint, String token, String type, String gatewayName, String shortAddress){
+        this.id = id;
+        this.IEEE=IEEE;
+        this.endPoint = endPoint;
+        this.token = token;
+        this.type = type;
+        this.gatewayName = gatewayName;
+        this.shortAddress = shortAddress;
+    }
+
 }
