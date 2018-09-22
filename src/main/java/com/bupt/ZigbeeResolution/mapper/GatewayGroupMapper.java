@@ -1,10 +1,7 @@
 package com.bupt.ZigbeeResolution.mapper;
 
 import com.bupt.ZigbeeResolution.data.GatewayGroup;
-import org.apache.ibatis.annotations.Delete;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
+import org.apache.ibatis.annotations.*;
 
 @Mapper
 public interface GatewayGroupMapper {
@@ -22,5 +19,8 @@ public interface GatewayGroupMapper {
 
     @Select("SELECT name FROM gatewayGroup where ip = #{ip}")
     String getGatewayNameByIp(String ip);
+
+    @Select("SELECT ip FROM gatewayGroup, deviceTokenRelation WHERE deviceTokenRelation.shortAddress = #{shortAddress} AND deviceTokenRelation.endPoint = #{endPoint} AND deviceTokenRelation.gatewayName = gatewayGroup.name")
+    String getGatewayIp(@Param("shortAddress") String shortAddress, @Param("endPoint") Integer endPoint);
 
 }

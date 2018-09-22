@@ -423,7 +423,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
-    public void setDeviceState(Device device, byte state) {
+    public void setDeviceState(Device device, byte state, String ip) {
+        System.out.println("进入setDeviceState");
         byte[] bytes = new byte[22];
 
         int index = 0;
@@ -447,7 +448,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = state;
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+        System.out.println("下发指令");
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     @Override

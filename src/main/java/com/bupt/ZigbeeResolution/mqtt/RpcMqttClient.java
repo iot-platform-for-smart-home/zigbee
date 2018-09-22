@@ -1,5 +1,6 @@
 package com.bupt.ZigbeeResolution.mqtt;
 
+import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
@@ -17,9 +18,11 @@ public class RpcMqttClient {
 //    public static String RPC_TOPIC = "v1/devices/me/rpc/request/+";
     static MqttClient rpcMqtt;
     private String token;
+    private GatewayGroupService gatewayGroupService;
 
-    public RpcMqttClient(String token){
+    public RpcMqttClient(String token, GatewayGroupService gatewayGroupService){
         this.token = token;
+        this.gatewayGroupService = gatewayGroupService;
     }
 
     public void init(){
@@ -35,7 +38,7 @@ public class RpcMqttClient {
             optionforRpcMqtt.setConnectionTimeout(5);
             optionforRpcMqtt.setKeepAliveInterval(20);
             optionforRpcMqtt.setUserName(token);
-            rpcMqtt.setCallback(new RpcMessageCallBack(rpcMqtt, token));
+            rpcMqtt.setCallback(new RpcMessageCallBack(rpcMqtt, token, gatewayGroupService));
             rpcMqtt.connect(optionforRpcMqtt);
             rpcMqtt.subscribe(Config.RPC_TOPIC,1);
         }catch(Exception e){

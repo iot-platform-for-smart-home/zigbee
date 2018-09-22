@@ -42,4 +42,6 @@ public class GatewayGroupService {
         return gatewayGroupMapper.getGatewayNameByIp(ip);
     }
 
+    public String getGatewayIp(String shortAddress, Integer endPoint){return  gatewayGroupMapper.getGatewayIp(shortAddress, endPoint); }
+
 }
