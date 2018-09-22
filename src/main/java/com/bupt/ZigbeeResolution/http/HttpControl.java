@@ -56,7 +56,7 @@ public class HttpControl {
     创建新设备的post请求
      */
 
-    public String httpcreate(String devicename,String gatewayName) throws Exception{
+    public String httpcreate(String devicename,String gatewayName, String type, String model) throws Exception{
 
         //请求体
         JSONObject obj = new JSONObject();
@@ -64,8 +64,12 @@ public class HttpControl {
         //obj.put("lifetime", "NaN");
         obj.put("tenantId",2);
         if(!gatewayName.equals("0")) {
-            obj.put("parentDeviceId", "Gateway_" + gatewayName);
+            obj.put("parentDeviceId", gatewayName);
         }
+        obj.put("manufacture","Gantch");
+        obj.put("deviceType", type);
+        obj.put("model",model);
+
         RequestBody bodyCreate = RequestBody.create(js, obj.toString());
 
         //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。

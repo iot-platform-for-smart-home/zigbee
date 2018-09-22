@@ -16,7 +16,13 @@ public class RpcMqttClient {
 //    public static String rpcToken = "gbNJ8K5a0Hggwd66vHqn";
 //    public static String RPC_TOPIC = "v1/devices/me/rpc/request/+";
     static MqttClient rpcMqtt;
-    public static void init(String token){
+    private String token;
+
+    public RpcMqttClient(String token){
+        this.token = token;
+    }
+
+    public void init(){
         try{
             if(rpcMqtt!=null){
 //                rpcMqtt.disconnect();
@@ -29,7 +35,7 @@ public class RpcMqttClient {
             optionforRpcMqtt.setConnectionTimeout(5);
             optionforRpcMqtt.setKeepAliveInterval(20);
             optionforRpcMqtt.setUserName(token);
-            //rpcMqtt.setCallback(new RpcMessageCallBack(rpcMqtt));
+            rpcMqtt.setCallback(new RpcMessageCallBack(rpcMqtt, token));
             rpcMqtt.connect(optionforRpcMqtt);
             rpcMqtt.subscribe(Config.RPC_TOPIC,1);
         }catch(Exception e){
@@ -37,7 +43,7 @@ public class RpcMqttClient {
         }
 
     }
-    public static void publicResponce(String topic,String data) throws Exception{
+    public void publicResponce(String topic,String data) throws Exception{
         MqttMessage msg = new MqttMessage();
         msg.setPayload(data.getBytes(Charset.forName("utf-8")));
         if(rpcMqtt.isConnected()){

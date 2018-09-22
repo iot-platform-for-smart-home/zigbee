@@ -2,9 +2,9 @@ package com.bupt.ZigbeeResolution.transform;
 
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import com.bupt.ZigbeeResolution.data.GatewayGroup;
-import com.bupt.ZigbeeResolution.data.User;
 import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.bupt.ZigbeeResolution.mqtt.RpcMqttClient;
 import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
@@ -100,13 +100,13 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     System.out.println(Arrays.toString(msg));
                     String s = new String(msg);
                     if (s.length() == 16) {
-                        name = s.substring(6, 12);
+                        name = s.substring(6, 11);
                         pwd = s.substring(12, 16);
                     } else if (s.length() == 17) {
-                        name = s.substring(6, 13);
+                        name = s.substring(6, 12);
                         pwd = s.substring(13, 17);
                     }
-                    User user = new User(name, pwd);
+                    //User user = new User(name, pwd);
                     GatewayGroup gatewayGroup = new GatewayGroup(name, ips, ctxip);
                     if(gatewayGroupService.getGatewayGroup(name)!=null){
                         gatewayGroupService.removeGatewayGroupByName(name);
@@ -114,17 +114,19 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     gatewayGroupService.addGatewayGroup(gatewayGroup);
 
                     //TODO 暂不可用
-                    DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(name, 1);
+                    DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByGatewayNameAndEndPoint(name, 0);
                     if(deviceTokenRelation == null){
                         String token = null;
                         //hc.httplogin();
-                        String id = hc.httpcreate("Gateway_"+name, "0");
+                        String id = hc.httpcreate("Gateway_"+name, "","Gateway", "");
                         token = hc.httpfind(id);
-                        DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(name, 1, token,"Gateway", name,"0000");
+                        DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(id, 0, token,"Gateway", name,"0000");
                         deviceTokenRelationService.addARelation(newDeviceTokenRelation);
-                        //RpcMqttClient.init(newDeviceTokenRelation.getToken());
+                        RpcMqttClient rpcMqttClient = new RpcMqttClient(token);
+                        rpcMqttClient.init();
                     }else{
-                        //RpcMqttClient.init(deviceTokenRelation.getToken());
+                        RpcMqttClient rpcMqttClient = new RpcMqttClient(deviceTokenRelation.getToken());
+                        rpcMqttClient.init();
                     }
 
 

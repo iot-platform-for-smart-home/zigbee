@@ -13,8 +13,14 @@ public interface DeviceTokenRelationMapper {
     @Select("SELECT * FROM deviceTokenRelation WHERE IEEE = #{IEEE} AND endPoint = #{endPoint}")
     DeviceTokenRelation getRelotionByIEEEAndEndPoint(@Param("IEEE") String IEEE, @Param("endPoint")Integer endPoint);
 
+    @Select("SELECT * FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND endPoint = #{endPoint}")
+    DeviceTokenRelation getRelotionByGatewayNameAndEndPoint(@Param("gatewayName") String gatewayName, @Param("endPoint")Integer endPoint);
+
     @Select("SELECT * FROM deviceTokenRelation WHERE shortAddress = #{shortAddress} AND endPoint = #{endPoint}")
     DeviceTokenRelation getRelotionBySAAndEndPoint(@Param("shortAddress") String shortAddress, @Param("endPoint")Integer endPoint);
+
+    @Select("SELECT * FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = 'Gateway'")
+    DeviceTokenRelation getGateway(@Param("gatewayName") String gatewayName);
 
     @Select("SELECT count(*) FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = #{type}")
     Integer getdeviceNumber(@Param("gatewayName") String gatewayName, @Param("type") String type);
