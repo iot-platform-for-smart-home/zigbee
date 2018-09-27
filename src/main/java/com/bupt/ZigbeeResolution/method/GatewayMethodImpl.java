@@ -9,6 +9,7 @@ import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
 import java.util.Map;
 
@@ -740,13 +741,17 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
             DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress());
             deviceTokenRelationService.addARelation(newDeviceTokenRelation);
+            DataMessageClient.publishAttribute(token, device.toString());
         }else{
             if(!device.getShortAddress().equals(deviceTokenRelation.getShortAddress())){
                 deviceTokenRelationService.updateShortAddress(device.getShortAddress(), device.getIEEE());
+                DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
             }
             if(!gatewayName.equals(deviceTokenRelation.getGatewayName())){
                 deviceTokenRelationService.updateGatewayName(gatewayName, device.getIEEE());
                 //TODO 向平台发送变更父设备的请求
+            }else{
+                DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
             }
         }
 
@@ -758,8 +763,19 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void deviceState_CallBack(Device device){
+    public void deviceState_CallBack(Device device,DeviceTokenRelationService deviceTokenRelationService){
         System.out.println(device.getShortAddress()+"-"+device.getEndpoint()+":"+device.getState());
+        DeviceTokenRelation deviceTokenRelation;
+        try {
+            deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(device.getShortAddress(), Integer.parseInt(String.valueOf(device.getEndpoint())));
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("status",device.getState());
+
+            //System.out.println(jsonObject.toString());
+            DataMessageClient.publishData(deviceTokenRelation.getToken(), jsonObject.toString());
+        }catch (Exception e){
+            System.out.println("数据表中无对应token"+e);
+        }
     }
 
     @Override

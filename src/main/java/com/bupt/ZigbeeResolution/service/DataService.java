@@ -85,7 +85,7 @@ public class DataService {
                 stateDevice.setEndpoint(bytes[4]);
                 stateDevice.setState(bytes[5]==0x01);
                 System.out.println("完成解析");
-                gatewayMethod.deviceState_CallBack(stateDevice);
+                gatewayMethod.deviceState_CallBack(stateDevice,deviceTokenRelationService);
                 break;
 
             case 0x08:

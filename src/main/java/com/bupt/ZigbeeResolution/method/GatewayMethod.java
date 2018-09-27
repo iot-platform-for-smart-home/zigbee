@@ -83,7 +83,7 @@ public interface GatewayMethod {
 
   void gateway_CallBack(Gateway gateway);
 
-  void deviceState_CallBack(Device device);
+  void deviceState_CallBack(Device device, DeviceTokenRelationService deviceTokenRelationService);
 
   void deviceBright_CallBack(String shortAddress, int endPoint, int bright);
 

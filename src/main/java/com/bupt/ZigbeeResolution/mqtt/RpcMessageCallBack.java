@@ -53,26 +53,29 @@ public class RpcMessageCallBack implements MqttCallback{
 			case "control switch":
 				switch (jsonObject.get("methodName").getAsString()){
 					case "setstate":
+						try {
+							Device controlDevice = new Device();
+							controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
+							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
 
-						Device controlDevice =new Device();
-						controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
-						controlDevice.setEndpoint(jsonObject.get("endPoint").getAsByte());
+							byte state;
+							if (jsonObject.get("status").getAsString().equals("true")) {
+								state = 0x01;
+							} else {
+								state = 0x00;
+							}
+							//System.out.println("进入控制");
 
-						byte state;
-						if(jsonObject.get("status").getAsString().equals("true")){
-							state = 0x01;
-						}else {
-							state = 0x00;
+							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
+							if (ip == null) {
+								System.out.println("Gateway offline");
+							}
+
+							System.out.println(ip);
+							gatewayMethod.setDeviceState(controlDevice, state, ip);
+						}catch (Exception e){
+							System.out.println(e);
 						}
-						//System.out.println("进入控制");
-
-						String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
-						if(ip == null){
-							System.out.println("Gateway offline");
-						}
-
-						System.out.println(ip);
-						gatewayMethod.setDeviceState(controlDevice, state, ip);
 
 						break;
 				}
