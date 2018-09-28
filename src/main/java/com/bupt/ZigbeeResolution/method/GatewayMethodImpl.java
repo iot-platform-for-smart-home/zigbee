@@ -454,7 +454,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void setDeviceLevel(Device device, byte value, int transition) {
+    public void setDeviceLevel(Device device, byte value, int transition, String ip) {
         byte[] bytes = new byte[24];
 
         int index = 0;
@@ -480,7 +480,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = (byte) (0xFF & ((byte)(transition) >> 8));
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void setDeviceHueAndSat(Device device, byte hue, byte sat, int transition) {

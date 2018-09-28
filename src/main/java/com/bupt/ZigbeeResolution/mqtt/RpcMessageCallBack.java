@@ -80,6 +80,34 @@ public class RpcMessageCallBack implements MqttCallback{
 						break;
 				}
 				break;
+
+			case "control dimmableLight":
+				switch (jsonObject.get("methodName").getAsString()){
+					case "setbright":
+						try {
+							Device controlDevice = new Device();
+							controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
+							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
+
+							byte bright;
+							bright = (byte)(0xFF & jsonObject.get("bright").getAsInt());
+							//System.out.println("进入控制");
+
+							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
+							if (ip == null) {
+								System.out.println("Gateway offline");
+							}
+
+							System.out.println(ip);
+							gatewayMethod.setDeviceLevel(controlDevice, bright, 0, ip);
+						}catch (Exception e){
+							System.out.println(e);
+						}
+
+						break;
+
+				}
+				break;
 		}
 
 

@@ -48,7 +48,7 @@ public interface GatewayMethod {
   void setDeviceState(Device device, byte state, String ip);
 
   // 设置指定设备的亮度
-  void setDeviceLevel(Device device ,byte value, int transition);
+  void setDeviceLevel(Device device ,byte value, int transition, String ip);
 
   // 设置指定设备的颜色
   void setDeviceHueAndSat(Device device, byte hue, byte sat, int transition);
