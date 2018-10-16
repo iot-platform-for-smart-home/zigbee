@@ -22,7 +22,7 @@ public interface DeviceTokenRelationMapper {
     @Select("SELECT * FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = 'Gateway'")
     DeviceTokenRelation getGateway(@Param("gatewayName") String gatewayName);
 
-    @Select("SELECT count(*) FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = #{type}")
+    @Select("SELECT count(*) FROM deviceTokenRelation WHERE AND type = #{type}")
     Integer getdeviceNumber(@Param("gatewayName") String gatewayName, @Param("type") String type);
 
     @Update("UPDATE deviceTokenRelation SET shortAddress = #{shortAddress} WHERE IEEE = #{IEEE}")

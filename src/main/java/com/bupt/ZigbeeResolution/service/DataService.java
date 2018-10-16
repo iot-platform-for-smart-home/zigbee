@@ -399,6 +399,7 @@ public class DataService {
                 Double temperature;
                 Integer humidity;
                 Integer pm;
+                Integer human;
                 Map<String, Double> data = new ConcurrentHashMap<String, Double>();
 
                 length = Integer.parseInt(String.valueOf(bytes[1]));
@@ -431,6 +432,17 @@ public class DataService {
                                 if (bytes[10 + i * 5] == 0x21) {
                                     pm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
                                     data.put("PM2.5", pm.doubleValue());
+                                }
+                            }
+                        }
+                        break;
+
+                    case "0604":
+                        for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
+                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0000")) {
+                                if (bytes[10 + i * 5] == 0x21) {
+                                    human = Integer.parseInt(String.valueOf(bytes[11+i*5]));
+                                    data.put("PIR_status", human.doubleValue());
                                 }
                             }
                         }

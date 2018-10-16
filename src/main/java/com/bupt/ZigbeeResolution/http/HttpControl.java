@@ -74,7 +74,7 @@ public class HttpControl {
 
         //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。
         Request requestCreate = new Request.Builder()
-                .url("http://10.108.218.64:30080/api/v1/deviceaccess/device")
+                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device")
                 .post(bodyCreate)
                 .addHeader("Accept","application/json, text/plain, */*")
 //                .addHeader("Accept","text/plain, */*, q=0.01")
@@ -107,7 +107,7 @@ public class HttpControl {
 
         //创建一个Request Request是OkHttp中访问的请求，Builder是辅助类。Response即OkHttp中的响应。
         Request requestCreate = new Request.Builder()
-                .url("http://10.108.218.64:30080/api/v1/deviceaccess/credentialbyid/" + id.toString())
+                .url("http://47.105.120.203:30080/api/v1/deviceaccess/credentialbyid/" + id.toString())
                 .get()
                 .addHeader("Accept", "application/json, text/plain, */*")
                 .addHeader("Connection", "keep-alive")
