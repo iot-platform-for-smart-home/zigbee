@@ -44,4 +44,8 @@ public class DeviceTokenRelationService {
     public DeviceTokenRelation getRelotionByGatewayNameAndEndPoint(String gatewayName, Integer endPoint){
         return deviceTokenRelationMapper.getRelotionByGatewayNameAndEndPoint(gatewayName, endPoint);
     }
+
+    public DeviceTokenRelation getRelationByUuid(String uuid){
+        return deviceTokenRelationMapper.getRelationByUuid(uuid);
+    }
 }

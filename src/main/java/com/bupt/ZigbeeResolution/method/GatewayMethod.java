@@ -2,6 +2,7 @@ package com.bupt.ZigbeeResolution.method;
 
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
+import com.bupt.ZigbeeResolution.service.SceneService;
 
 import java.util.Map;
 
@@ -125,7 +126,7 @@ public interface GatewayMethod {
 
   void setDeviceHueAndSat_CallBack();
 
-  void addScene_CallBack(Scene scene);
+  void addScene_CallBack(Scene scene, SceneService sceneService);
 
   void callScene_CallBack();
 

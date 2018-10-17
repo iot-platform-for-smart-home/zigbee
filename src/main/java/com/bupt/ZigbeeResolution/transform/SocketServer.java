@@ -2,9 +2,13 @@ package com.bupt.ZigbeeResolution.transform;
 
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
+import com.bupt.ZigbeeResolution.service.SceneService;
 import com.bupt.ZigbeeResolution.service.UserService;
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
@@ -33,6 +37,9 @@ public class SocketServer {
 
     @Autowired
     private DeviceTokenRelationService deviceTokenRelationService;
+
+    @Autowired
+    private SceneService sceneService;
 
     private static Map<String, Channel> map = new ConcurrentHashMap<String, Channel>();
     private static Map<String, byte[]> messageMap = new ConcurrentHashMap<String, byte[]>();
@@ -75,7 +82,7 @@ public class SocketServer {
                         //ch.pipeline().addLast("frameEncoder", new LengthFieldPrepender(4));
                         ch.pipeline().addLast("bytesEncoder", new ByteArrayEncoder());
                         ch.pipeline().addLast(new OutBoundHandler());
-                        ch.pipeline().addLast(new IdleStateHandler(0,0,300), new TransportHandler(userService,gatewayGroupService,deviceTokenRelationService));
+                        ch.pipeline().addLast(new IdleStateHandler(0,0,300), new TransportHandler(userService,gatewayGroupService,deviceTokenRelationService, sceneService));
                     }
                 });
             //b.bind(port);

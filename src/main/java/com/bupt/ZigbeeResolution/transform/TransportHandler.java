@@ -5,10 +5,7 @@ import com.bupt.ZigbeeResolution.data.GatewayGroup;
 import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.mqtt.RpcMqttClient;
-import com.bupt.ZigbeeResolution.service.DataService;
-import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
-import com.bupt.ZigbeeResolution.service.GatewayGroupService;
-import com.bupt.ZigbeeResolution.service.UserService;
+import com.bupt.ZigbeeResolution.service.*;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -24,6 +21,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     private UserService userService;
     private GatewayGroupService gatewayGroupService;
     private DeviceTokenRelationService deviceTokenRelationService;
+    private SceneService sceneService;
 
     private HttpControl hc= new HttpControl();
     public static final ChannelGroup group = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -40,10 +38,11 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     public static GatewayMethodImpl gatewayMethod = new GatewayMethodImpl();
 
-    public TransportHandler(UserService userService, GatewayGroupService gatewayGroupService, DeviceTokenRelationService deviceTokenRelationService) {
+    public TransportHandler(UserService userService, GatewayGroupService gatewayGroupService, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService) {
         this.userService = userService;
         this.gatewayGroupService = gatewayGroupService;
         this.deviceTokenRelationService = deviceTokenRelationService;
+        this.sceneService = sceneService;
     }
 
 
@@ -120,7 +119,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         //hc.httplogin();
                         String id = hc.httpcreate("Gateway_"+name, "","Gateway", "");
                         token = hc.httpfind(id);
-                        DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(id, 0, token,"Gateway", name,"0000");
+                        DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(id, 0, token,"Gateway", name,"0000", id);
                         deviceTokenRelationService.addARelation(newDeviceTokenRelation);
                         RpcMqttClient rpcMqttClient = new RpcMqttClient(token, gatewayGroupService);
                         rpcMqttClient.init();
@@ -150,7 +149,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         response = 0x00;
                     }*/
                     String gatewayName = gatewayGroupService.getGatewayNameByIp(ips);
-                    dataService.resolution(body, gatewayName, deviceTokenRelationService);
+                    dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService);
                     //chs.writeAndFlush(msg);
                 }
             }

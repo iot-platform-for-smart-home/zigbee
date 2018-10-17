@@ -5,6 +5,7 @@ import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
 import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
+import com.bupt.ZigbeeResolution.service.SceneService;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
@@ -739,7 +740,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
             String id = httpControl.httpcreate(type+"_"+deviceNumber.toString(), gateway.getIEEE(),type, device.getSnid());
             token = httpControl.httpfind(id);
 
-            DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress());
+            DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress(), id);
             deviceTokenRelationService.addARelation(newDeviceTokenRelation);
             DataMessageClient.publishAttribute(token, device.toString());
         }else{
@@ -887,8 +888,10 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void addScene_CallBack(Scene scene) {
+    public void addScene_CallBack(Scene scene, SceneService sceneService) {
         System.out.println(scene.toString());
+        sceneService.updateScene(scene);
+
     }
 
     @Override

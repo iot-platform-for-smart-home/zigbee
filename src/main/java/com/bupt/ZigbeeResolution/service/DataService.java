@@ -28,7 +28,7 @@ public class DataService {
 
 
 
-    public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
+    public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService) throws Exception {
         System.out.println("进入");
         byte Response = bytes[0];
         switch (Response){
@@ -152,7 +152,7 @@ public class DataService {
                 scene.setSceneName(byte2HexStr(nameByte));
                 System.out.println("完成解析");
                 // 添加场景,修改场景名的返回值一样
-                gatewayMethod.addScene_CallBack(scene);
+                gatewayMethod.addScene_CallBack(scene,sceneService);
 
             case 0x0E:
                 scene = new Scene();

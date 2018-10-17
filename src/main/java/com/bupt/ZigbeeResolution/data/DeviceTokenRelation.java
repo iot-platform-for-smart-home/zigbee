@@ -11,17 +11,19 @@ public class DeviceTokenRelation {
     private String type;
     private String gatewayName;
     private String shortAddress;
+    private String uuid;
 
-    public DeviceTokenRelation(String IEEE, Integer endPoint, String token, String type, String gatewayName, String shortAddress){
+    public DeviceTokenRelation(String IEEE, Integer endPoint, String token, String type, String gatewayName, String shortAddress, String uuid){
         this.IEEE=IEEE;
         this.endPoint = endPoint;
         this.token = token;
         this.type = type;
         this.gatewayName = gatewayName;
         this.shortAddress = shortAddress;
+        this.uuid = uuid;
     }
 
-    public DeviceTokenRelation(Integer id, String IEEE, Integer endPoint, String token, String type, String gatewayName, String shortAddress){
+    public DeviceTokenRelation(Integer id, String IEEE, Integer endPoint, String token, String type, String gatewayName, String shortAddress, String uuid){
         this.id = id;
         this.IEEE=IEEE;
         this.endPoint = endPoint;
@@ -29,6 +31,7 @@ public class DeviceTokenRelation {
         this.type = type;
         this.gatewayName = gatewayName;
         this.shortAddress = shortAddress;
+        this.uuid = uuid;
     }
 
 }
