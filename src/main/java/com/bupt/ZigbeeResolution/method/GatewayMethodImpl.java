@@ -259,8 +259,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x8B;
         bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+14));
         bytes[index++] = (byte) 0x02;
-        System.arraycopy(TransportHandler.toBytes(device.getDeviceId()), 0, bytes, index, TransportHandler.toBytes(device.getDeviceId()).length);
-        index=index+TransportHandler.toBytes(device.getDeviceId()).length;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index=index+TransportHandler.toBytes(device.getShortAddress()).length;
         for(int i=0;i<6;i++){
             bytes[index++] = (byte) 0x00;
         }

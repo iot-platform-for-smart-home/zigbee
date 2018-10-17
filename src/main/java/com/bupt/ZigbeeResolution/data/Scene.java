@@ -8,18 +8,21 @@ public class Scene {
     String sceneId;
     String sceneName;
     int sceneNumber;
+    Integer customerId;
 
     public Scene(){}
 
-    public Scene(String sceneName){
+    public Scene(String sceneName, Integer customerId){
         this.sceneName = sceneName;
+        this.customerId =customerId;
     }
 
-    public Scene(Integer scene_id, String sceneId, String sceneName, Integer sceneNumber){
+    public Scene(Integer scene_id, String sceneId, String sceneName, Integer sceneNumber, Integer customerId){
         this.scene_id = scene_id;
         this.sceneId = sceneId;
         this.sceneName = sceneName;
         this.sceneNumber =sceneNumber;
+        this.customerId =customerId;
     }
 
 

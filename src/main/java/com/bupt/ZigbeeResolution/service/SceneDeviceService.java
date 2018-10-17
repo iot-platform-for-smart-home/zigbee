@@ -5,6 +5,8 @@ import com.bupt.ZigbeeResolution.mapper.SceneDeviceMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class SceneDeviceService {
 
@@ -16,7 +18,12 @@ public class SceneDeviceService {
         return i==1;
     }
 
-    public SceneDevice getSceneDevice(Integer sceneId){
-        return sceneDeviceMapper.getSceneDeviceBySceneId(sceneId);
+    public List<SceneDevice> getSceneDevice(Integer scene_id){
+        return sceneDeviceMapper.getSceneDeviceBySceneId(scene_id);
+    }
+
+    public Boolean deleteSceneDeviceBySceneId(Integer scene_id){
+        Integer i =  sceneDeviceMapper.deleteScenenDeviceBySceneId(scene_id);
+        return i==1;
     }
 }
