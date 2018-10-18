@@ -79,7 +79,6 @@ public interface GatewayMethod {
   // 设置指定设备的色温
   void setColorTemperature(Device device, int  value, int transition);
 
-
   void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception;
 
   void gateway_CallBack(Gateway gateway);

@@ -677,6 +677,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, 2);
         index = index + 2;
         for (int i = 0; i < 8; i++){
+
             bytes[index++] = (byte) 0x00;
         }
         bytes[index++] = device.getEndpoint();
