@@ -27,4 +27,7 @@ public interface SceneMapper {
     @Delete("DELETE FROM scene WHERE scene_id = #{scene_id}")
     Integer deleteSceneBySceneId(@Param("scene_id") Integer scene_id);
 
+    @Update("UPDATE scene SET sceneSelectorId = #{sceneSelectorId} WHERE scene_id = #{scene_id}")
+    Integer updateSceneSelector(@Param("sceneSelectorId") String sceneSelectorId, @Param("scene_id") Integer scene_id);
+
 }

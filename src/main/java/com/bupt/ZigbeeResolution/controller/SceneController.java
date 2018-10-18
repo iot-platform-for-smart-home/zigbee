@@ -4,6 +4,7 @@ import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
+import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.SceneDeviceService;
 import com.bupt.ZigbeeResolution.service.SceneService;
 import com.google.gson.JsonArray;
@@ -27,6 +28,9 @@ public class SceneController{
 
     @Autowired
     private SceneDeviceService sceneDeviceService;
+
+    @Autowired
+    private GatewayGroupService gatewayGroupService;
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
@@ -71,8 +75,11 @@ public class SceneController{
             byte data3 =(byte)(0xFF & deviceInfo.get("data3").getAsInt());
             byte data4 =(byte)(0xFF & deviceInfo.get("data4").getAsInt());
 
+            String ip = gatewayGroupService.getGatewayIp(deviceRelation.getShortAddress(), deviceRelation.getEndPoint());
+
             GatewayMethod gatewayMethod = new GatewayMethodImpl();
-            gatewayMethod.addScene(device, data1, data2, data3, data4, sceneName+"_"+customerId,(byte)0x00, (byte)0x00,(byte)0x00);
+            gatewayMethod.addScene(device, data1, data2, data3, data4, sceneName+"_"+customerId,(byte)0x00, (byte)0x00,(byte)0x00, ip);
+
 
             SceneDevice sceneDevice = new SceneDevice(scene_id,deviceId,deviceInfo.get("data1").getAsInt(),deviceInfo.get("data2").getAsInt(),deviceInfo.get("data3").getAsInt(),deviceInfo.get("data4").getAsInt());
             sceneDeviceService.addSceneDevice(sceneDevice);
@@ -112,19 +119,23 @@ public class SceneController{
         return sceneArray.toString();
     }
 
-    @RequestMapping(value="/deleteScene/{scene_id}", method = RequestMethod.DELETE)
+    @RequestMapping(value="/deleteScene/{scene_id}/{gatewayId}", method = RequestMethod.DELETE)
     @ResponseBody
-    public String deleteScene(@PathVariable("scene_id")Integer scene_id){
+    public String deleteScene(@PathVariable("scene_id")Integer scene_id, @PathVariable("gatewayId")String gatewayId){
         Scene scene = sceneService.getSceneBySceneId(scene_id);
         Device device = new Device();
         device.setShortAddress("FFFF");
         device.setEndpoint((byte)0xFF);
+
+        //DevicedeviceTokenRelationService.getRelationByUuid(gatewayId);
+
+
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
         gatewayMethod.deleteSceneMember(scene, device);
 
         if(!sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)){
             System.err.println("删除场景设备错误！");
-            return "error"
+            return "error";
         }
 
         if(!sceneService.deleteSceneBySceneId(scene_id)){
@@ -137,6 +148,16 @@ public class SceneController{
     @RequestMapping(value = "/bindSelector", method = RequestMethod.POST)
     @ResponseBody
     public String bindSceneSelector(@RequestBody String selectorInfo){
+        JsonObject jsonObject = (JsonObject) new JsonParser().parse(selectorInfo);
+        String sceneSelectorId = jsonObject.get("sceneSelectorId").getAsString();
+        Integer scene_id  = jsonObject.get("scene_id").getAsInt();
 
+        //TODO 绑定场景开关
+
+        if(!sceneService.updateSceneSelector(sceneSelectorId, scene_id)){
+            System.err.println("数据库更新错误");
+            return  "error";
+        }
+        return "success";
     }
 }

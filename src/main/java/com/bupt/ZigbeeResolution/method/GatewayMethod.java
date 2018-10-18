@@ -57,7 +57,8 @@ public interface GatewayMethod {
   // 添加场景
   void addScene(Device device , byte state, byte data2,
                 byte data3, byte data4, String sceneName,
-                byte irId, int transition, byte funcId);
+                byte irId, int transition, byte funcId,
+                String ip);
   // 报警器
   void addScene(Device device , byte state, byte data2,
                 byte data3, byte data4, String sceneName,

@@ -39,4 +39,9 @@ public class SceneService {
         Integer i = sceneMapper.deleteSceneBySceneId(scene_id);
         return i==1;
     }
+
+    public Boolean updateSceneSelector(String sceneSelectorId, Integer scene_id){
+        Integer i = sceneMapper.updateSceneSelector(sceneSelectorId,scene_id);
+        return  i==1;
+    }
 }
