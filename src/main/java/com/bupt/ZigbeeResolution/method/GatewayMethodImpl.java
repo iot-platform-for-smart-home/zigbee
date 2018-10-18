@@ -729,6 +729,85 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
+    public void setSwitchBindScene(Device device, String sceneId) {
+        byte[] bytes = new byte[23];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x18;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x8d;
+        bytes[index++] = (byte) 0x0F;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, 2);
+        index = index + 2;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x05;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x01;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x10;
+        bytes[index++] = (byte) 0x04;
+        bytes[index++] = (byte) 0x04;
+        bytes[index++] = (byte) 0xF0;
+        bytes[index++] = (byte) 0xF0;
+        bytes[index] = (byte) 0x08;
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void getBindRecord(Device device) {
+        byte[] bytes = new byte[10];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x0A;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x8D;
+        bytes[index++] = (byte) 0x01;
+        bytes[index] = (byte) 0x08;
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    @Override
+    public void cancelBindOfSwitchAndScene(Device device, String clusterId) {
+//        byte[] bytes = new byte[35];
+//
+//        int index = 0;
+//        bytes[index++] = (byte) 0x23;
+//        bytes[index++] = (byte) 0x00;
+//        for (int i = 0; i < 4; i++){
+//            bytes[index++] = (byte) 0xFF;
+//        }
+//        bytes[index++] = (byte) 0xFE;
+//        bytes[index++] = (byte) 0x96;
+//        bytes[index++] = (byte) 0x00;
+    }
+
+    @Override
+    public void setSwitchBindScene_CallBack() {
+
+    }
+
+    @Override
+    public void getBindRecord_CallBack() {
+
+    }
+
+    @Override
+    public void cancelBindOfSwitchAndScene_CallBack() {
+
+    }
+
+    @Override
     public void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
         System.out.println(device.toString());
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())));
