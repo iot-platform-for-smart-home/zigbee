@@ -23,7 +23,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     private DeviceTokenRelationService deviceTokenRelationService;
     private SceneService sceneService;
 
-    private HttpControl hc= new HttpControl();
+    private HttpControl hc = new HttpControl();
     public static final ChannelGroup group = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     public static final ChannelGroup channelgroups = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     public final static String LoginControlMessage = "Login OK!\r\nControl Mode\r\nGateway online:";
@@ -44,7 +44,6 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         this.deviceTokenRelationService = deviceTokenRelationService;
         this.sceneService = sceneService;
     }
-
 
 
     @Override

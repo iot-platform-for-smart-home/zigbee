@@ -4,6 +4,7 @@ import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 
+import javax.sql.rowset.spi.TransactionalWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -379,6 +380,40 @@ public class DataService {
                         break;
                 }
                 break;
+
+            case (byte)0x31:
+                length = Integer.parseInt(String.valueOf(bytes[2]));
+                byte recordId = bytes[3];
+                byte[] sourceAddress = Arrays.copyOfRange(bytes, 4, 5);
+                byte sourceEndPoint = bytes[6];
+                switch(bytes[8]){
+                    case (byte) 0x01:
+                        System.out.print("场景 => ");
+                        byte scene_id = bytes[10];
+                        System.out.print("长度: " + length +
+                                " | 记录ID: " + recordId +
+                                " | 源地址: " + byte2HexStr(sourceAddress) +
+                                " | 源endpoint: " + sourceEndPoint +
+                                " | 场景ID: " + scene_id
+                        );
+                        break;
+                    case (byte) 0x02:
+                        System.out.print("设备 => ");
+                        Integer deviceNum = (int)bytes[9] ;
+                        System.out.print("长度: " + length +
+                                " | 记录ID: " + recordId +
+                                " | 源地址: " + byte2HexStr(sourceAddress) +
+                                " | 源endpoint: " + sourceEndPoint +
+                                " | 设备个数: " + deviceNum
+                        );
+                        for(int i = 0; i < deviceNum - 1; i = i+3){
+                            System.out.print(" | 目标地址" + i+1 + ": " + bytes[10+i]);
+                            System.out.print(" | 目标endpoint"+ i+1 + ": " + byte2HexStr(Arrays.copyOfRange(bytes, 11+i, 12+i)));
+                        }
+                        break;
+                }
+                break;
+
 
             case (byte)0xAF:
                 Group newGroupName = new Group();

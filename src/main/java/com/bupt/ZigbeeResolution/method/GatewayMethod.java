@@ -80,6 +80,20 @@ public interface GatewayMethod {
   // 设置指定设备的色温
   void setColorTemperature(Device device, int  value, int transition);
 
+  // 命令场景开关绑定场景
+  void setSwitchBindScene(Device device, String sceneId);
+
+  // 获取绑定记录
+  void getBindRecord(Device device);
+
+  // 取消场景开关和场景的绑定
+  void cancelBindOfSwitchAndScene(Device device, String clusterId);
+
+  void setSwitchBindScene_CallBack();
+
+  void getBindRecord_CallBack();
+
+  void cancelBindOfSwitchAndScene_CallBack();
 
   void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception;
 
