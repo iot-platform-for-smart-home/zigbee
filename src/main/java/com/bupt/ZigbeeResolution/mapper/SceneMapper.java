@@ -9,7 +9,7 @@ import java.util.List;
 public interface SceneMapper {
 
     @Insert("INSERT INTO scene (sceneName,customerId) VALUES (#{sceneName}, #{customerId})")
-    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    @Options(useGeneratedKeys = true, keyProperty = "scene_id", keyColumn = "scene_id")
     Integer addSceneOnlySceneName(Scene scene);
 
     @Select("SELECT * FROM scene WHERE sceneName = #{sceneName}")

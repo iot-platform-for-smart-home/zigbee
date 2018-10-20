@@ -4,7 +4,6 @@ import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 
-import javax.sql.rowset.spi.TransactionalWriter;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -146,14 +145,15 @@ public class DataService {
 
             case 0x0D:
                 Scene scene = new Scene();
-                scene.setSceneId(byte2HexStr(new byte[]{bytes[3], bytes[4]}));
-                int nameLen = (int) bytes[5];
+                scene.setSceneId(byte2HexStr(new byte[]{bytes[2], bytes[3]}));
+                int nameLen = (int) bytes[4];
                 byte[] nameByte = new byte[nameLen];
-                System.arraycopy(bytes,6, nameByte, 0, nameLen);
-                scene.setSceneName(byte2HexStr(nameByte));
+                System.arraycopy(bytes,5, nameByte, 0, nameLen);
+                scene.setSceneName(bytesToAscii(nameByte));
                 System.out.println("完成解析");
                 // 添加场景,修改场景名的返回值一样
                 gatewayMethod.addScene_CallBack(scene,sceneService);
+                break;
 
             case 0x0E:
                 scene = new Scene();
@@ -573,6 +573,9 @@ public class DataService {
                 break;
             case "0101":
                 type = "dimmableLight";
+                break;
+            case "0202":
+                type = "curtain";
                 break;
             case "0203":
                 type = "temperature";

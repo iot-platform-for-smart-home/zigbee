@@ -47,6 +47,9 @@ public class RpcMessageCallBack implements MqttCallback{
 		// TODO Auto-generated method stub
 		System.out.println(msg);
 		JsonObject jsonObject = new JsonParser().parse(new String(msg.getPayload())).getAsJsonObject();
+		Integer position = topic.lastIndexOf("/");
+		Integer requestId = Integer.parseInt(topic.substring(position+1));
+		System.out.println(requestId);
 
 
 		switch (jsonObject.get("serviceName").getAsString()){
@@ -69,10 +72,12 @@ public class RpcMessageCallBack implements MqttCallback{
 							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
 							if (ip == null) {
 								System.out.println("Gateway offline");
+								//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
 							}
 
 							System.out.println(ip);
 							gatewayMethod.setDeviceState(controlDevice, state, ip);
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"success");
 						}catch (Exception e){
 							System.out.println(e);
 						}
@@ -96,16 +101,47 @@ public class RpcMessageCallBack implements MqttCallback{
 							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
 							if (ip == null) {
 								System.out.println("Gateway offline");
+								//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
 							}
 
 							System.out.println(ip);
 							gatewayMethod.setDeviceLevel(controlDevice, bright, 0, ip);
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"success");
 						}catch (Exception e){
 							System.out.println(e);
 						}
 
 						break;
 
+				}
+				break;
+
+			case "control curtain":
+				switch (jsonObject.get("methodName").getAsString()){
+					case "setstate":
+						try {
+							Device controlDevice = new Device();
+							controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
+							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
+
+							byte state;
+							state = (byte)(0xFF & jsonObject.get("status").getAsInt());
+							//System.out.println("进入控制");
+
+							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
+							if (ip == null) {
+								System.out.println("Gateway offline");
+								//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+							}
+
+							System.out.println(ip);
+							gatewayMethod.setDeviceState(controlDevice, state, ip);
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"success");
+						}catch (Exception e){
+							System.out.println(e);
+						}
+
+						break;
 				}
 				break;
 		}

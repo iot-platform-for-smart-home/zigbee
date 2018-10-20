@@ -78,11 +78,15 @@ public class SceneController{
             String ip = gatewayGroupService.getGatewayIp(deviceRelation.getShortAddress(), deviceRelation.getEndPoint());
 
             GatewayMethod gatewayMethod = new GatewayMethodImpl();
-            gatewayMethod.addScene(device, data1, data2, data3, data4, sceneName+"_"+customerId,(byte)0x00, (byte)0x00,(byte)0x00, ip);
-
+            gatewayMethod.addScene(device, data1, data2, data3, data4, sceneName+"_"+customerId,(byte)0x00, (byte)0x01,(byte)0x00, ip);
 
             SceneDevice sceneDevice = new SceneDevice(scene_id,deviceId,deviceInfo.get("data1").getAsInt(),deviceInfo.get("data2").getAsInt(),deviceInfo.get("data3").getAsInt(),deviceInfo.get("data4").getAsInt());
-            sceneDeviceService.addSceneDevice(sceneDevice);
+            if(sceneDeviceService.getSceneDeviceBySceneIdAndDeviceId(scene_id, deviceId)!=null){
+                sceneDeviceService.updateSceneDevice(sceneDevice);
+            }else {
+                sceneDeviceService.addSceneDevice(sceneDevice);
+            }
+
         }
 
     }
@@ -112,11 +116,18 @@ public class SceneController{
                 sceneDeviceObject.addProperty("data4", sceneDevice.getData4());
                 jsonArray.add(sceneDeviceObject);
             }
-            jsonObject.addProperty("detail",jsonArray.toString());
+            jsonObject.add("detail",jsonArray);
             sceneArray.add(jsonObject);
         }
 
         return sceneArray.toString();
+    }
+
+    @RequestMapping(value = "/getScene/{scene_id}", method = RequestMethod.GET)
+    @ResponseBody
+    public List<SceneDevice> getScene(@PathVariable("scene_id")Integer scene_id){
+        List<SceneDevice> sceneDeviceList = sceneDeviceService.getSceneDevice(scene_id);
+        return sceneDeviceList;
     }
 
     @RequestMapping(value="/deleteScene/{scene_id}/{gatewayId}", method = RequestMethod.DELETE)
@@ -127,13 +138,15 @@ public class SceneController{
         device.setShortAddress("FFFF");
         device.setEndpoint((byte)0xFF);
 
-        //DevicedeviceTokenRelationService.getRelationByUuid(gatewayId);
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(gatewayId);
+        GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(deviceTokenRelation.getGatewayName());
+        String ip = gatewayGroup.getIp();
 
 
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
-        gatewayMethod.deleteSceneMember(scene, device);
+        gatewayMethod.deleteSceneMember(scene, device, ip);
 
-        if(!sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)){
+        if(sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)){
             System.err.println("删除场景设备错误！");
             return "error";
         }
@@ -152,7 +165,17 @@ public class SceneController{
         String sceneSelectorId = jsonObject.get("sceneSelectorId").getAsString();
         Integer scene_id  = jsonObject.get("scene_id").getAsInt();
 
-        //TODO 绑定场景开关
+        Scene scene = sceneService.getSceneBySceneId(scene_id);
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(sceneSelectorId);
+
+        Device device = new Device();
+        device.setShortAddress(deviceTokenRelation.getShortAddress());
+        device.setEndpoint(deviceTokenRelation.getEndPoint().byteValue());
+
+        GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(deviceTokenRelation.getGatewayName());
+
+        GatewayMethod gatewayMethod = new GatewayMethodImpl();
+        gatewayMethod.setSwitchBindScene(device, scene.getSceneId(), gatewayGroup.getIp());
 
         if(!sceneService.updateSceneSelector(sceneSelectorId, scene_id)){
             System.err.println("数据库更新错误");

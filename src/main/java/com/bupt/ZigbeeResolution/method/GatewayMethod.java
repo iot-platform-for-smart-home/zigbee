@@ -27,7 +27,7 @@ public interface GatewayMethod {
 
   void getSceneDetail(Scene scene);
 
-  void deleteSceneMember(Scene scene,Device device);
+  void deleteSceneMember(Scene scene,Device device, String ip);
 
   void getTimerTask();
 
@@ -81,7 +81,7 @@ public interface GatewayMethod {
   void setColorTemperature(Device device, int  value, int transition);
 
   // 命令场景开关绑定场景
-  void setSwitchBindScene(Device device, String sceneId);
+  void setSwitchBindScene(Device device, String sceneId, String ip);
 
   // 获取绑定记录
   void getBindRecord(Device device);

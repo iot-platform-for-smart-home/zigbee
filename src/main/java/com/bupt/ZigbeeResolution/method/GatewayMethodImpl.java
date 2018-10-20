@@ -245,11 +245,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
-    public void deleteSceneMember(Scene scene, Device device){
-        byte[] bytes = new byte[TransportHandler.toBytes(scene.getSceneName()).length+23];
+    public void deleteSceneMember(Scene scene, Device device, String ip){
+        byte[] bytes = new byte[scene.getSceneName().getBytes().length+23];
 
         int index = 0;
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+23));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length+23));
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFF;
@@ -257,7 +257,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0x8B;
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length+14));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length+14));
         bytes[index++] = (byte) 0x02;
         System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
         index=index+TransportHandler.toBytes(device.getShortAddress()).length;
@@ -268,11 +268,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         for(int i=0;i<2;i++){
             bytes[index++] = (byte) 0x00;
         }
-        bytes[index++] = (byte) (0xFF & (TransportHandler.toBytes(scene.getSceneName()).length));
+        bytes[index++] = (byte) (0xFF & (scene.getSceneName().getBytes().length));
         System.arraycopy(scene.getSceneName().getBytes(), 0, bytes, index, scene.getSceneName().getBytes().length);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void getTimerTask(){
@@ -729,8 +729,9 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void setSwitchBindScene(Device device, String sceneId) {
+    public void setSwitchBindScene(Device device, String sceneId,String ip) {
         byte[] bytes = new byte[23];
+        sceneId = sceneId.substring(0,2);
 
         int index = 0;
         bytes[index++] = (byte) 0x18;
@@ -754,9 +755,9 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x04;
         bytes[index++] = (byte) 0xF0;
         bytes[index++] = (byte) 0xF0;
-        bytes[index] = (byte) 0x08;
+        System.arraycopy(TransportHandler.toBytes(sceneId), 0, bytes, index, 1);
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     @Override
@@ -817,12 +818,16 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
             Integer deviceNumber = deviceTokenRelationService.getDeviceNumber(gatewayName, type);
             DeviceTokenRelation gateway = deviceTokenRelationService.getGateway(gatewayName);
             //httpControl.httplogin();
-            String id = httpControl.httpcreate(type+"_"+deviceNumber.toString(), gateway.getIEEE(),type, device.getSnid());
-            token = httpControl.httpfind(id);
+            if(!device.getSnid().equals("") && device.getSnid()!=null)
+            {
+                String id = httpControl.httpcreate(type+"_"+deviceNumber.toString(), gateway.getIEEE(),type, device.getSnid());
+                token = httpControl.httpfind(id);
 
-            DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress(), id);
-            deviceTokenRelationService.addARelation(newDeviceTokenRelation);
-            DataMessageClient.publishAttribute(token, device.toString());
+                DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress(), id);
+                deviceTokenRelationService.addARelation(newDeviceTokenRelation);
+                DataMessageClient.publishAttribute(token, device.toString());
+            }
+
         }else{
             if(!device.getShortAddress().equals(deviceTokenRelation.getShortAddress())){
                 deviceTokenRelationService.updateShortAddress(device.getShortAddress(), device.getIEEE());
