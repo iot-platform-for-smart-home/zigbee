@@ -594,7 +594,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void callScene(String sceneId) {
+    public void callScene(String sceneId, String ip) {
         System.out.print("调用场景 => ");
         byte[] bytes = new byte[11];
 
@@ -610,7 +610,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         System.arraycopy(TransportHandler.toBytes(sceneId), 0, bytes, index, 2);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     @Override

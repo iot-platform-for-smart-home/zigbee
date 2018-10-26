@@ -30,4 +30,7 @@ public interface SceneMapper {
     @Update("UPDATE scene SET sceneSelectorId = #{sceneSelectorId} WHERE scene_id = #{scene_id}")
     Integer updateSceneSelector(@Param("sceneSelectorId") String sceneSelectorId, @Param("scene_id") Integer scene_id);
 
+    @Update("UPDATE scene SET gatewayName = #{gatewayName} WHERE scene_id = #{scene_id}")
+    Integer updateGatewayName(@Param("gatewayName")String gatewayName, @Param("scene_id") Integer scene_id);
+
 }

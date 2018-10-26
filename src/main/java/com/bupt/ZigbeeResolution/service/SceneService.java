@@ -44,4 +44,9 @@ public class SceneService {
         Integer i = sceneMapper.updateSceneSelector(sceneSelectorId,scene_id);
         return  i==1;
     }
+
+    public Boolean updateGatewayName(String gatewayName, Integer scene_id){
+        Integer i = sceneMapper.updateGatewayName(gatewayName, scene_id);
+        return  i == 1;
+    }
 }

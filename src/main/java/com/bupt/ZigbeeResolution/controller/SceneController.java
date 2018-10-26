@@ -34,7 +34,7 @@ public class SceneController{
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
-    public void addScene(@RequestBody String sceneInfo){
+    public String addScene(@RequestBody String sceneInfo){
         JsonObject jsonObject = (JsonObject)new JsonParser().parse(sceneInfo);
         String sceneName = jsonObject.get("sceneName").getAsString();
         Integer customerId = jsonObject.get("customerId").getAsInt();
@@ -49,10 +49,17 @@ public class SceneController{
         }
 
         JsonArray sceneArray = jsonObject.get("sceneInfo").getAsJsonArray();
+        String gatewayName = "";
         for(JsonElement jsonElement:sceneArray){
             JsonObject deviceInfo = jsonElement.getAsJsonObject();
             String deviceId = deviceInfo.get("deviceId").getAsString();
             DeviceTokenRelation deviceRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
+
+            if(!gatewayName.equals("") && !gatewayName.equals(deviceRelation.getGatewayName())){
+                return "error";
+            }
+
+            gatewayName = deviceRelation.getGatewayName();
 
             Device device = new Device();
             device.setShortAddress(deviceRelation.getShortAddress());
@@ -88,17 +95,18 @@ public class SceneController{
             }
 
         }
-
+        sceneService.updateGatewayName(gatewayName, scene_id);
+        return  "success";
     }
 
     @RequestMapping(value = "/getAllScene/{customerId}", method = RequestMethod.GET)
     @ResponseBody
     public String getAllScene(@PathVariable("customerId") Integer customerId){
         JsonArray sceneArray = new JsonArray();
-        JsonObject jsonObject = new JsonObject();
-        JsonArray jsonArray = new JsonArray();
         List<Scene> scenes = sceneService.getSceneByCustomerId(customerId);
         for(Scene scene:scenes){
+            JsonObject jsonObject = new JsonObject();
+            JsonArray jsonArray = new JsonArray();
             jsonObject.addProperty("scene_id",scene.getScene_id());
             jsonObject.addProperty("sceneId", scene.getSceneId());
             String sceneName = scene.getSceneName();
@@ -130,16 +138,19 @@ public class SceneController{
         return sceneDeviceList;
     }
 
-    @RequestMapping(value="/deleteScene/{scene_id}/{gatewayId}", method = RequestMethod.DELETE)
+    @RequestMapping(value="/deleteScene/{scene_id}", method = RequestMethod.DELETE)
     @ResponseBody
-    public String deleteScene(@PathVariable("scene_id")Integer scene_id, @PathVariable("gatewayId")String gatewayId){
+    public String deleteScene(@PathVariable("scene_id")Integer scene_id){
         Scene scene = sceneService.getSceneBySceneId(scene_id);
         Device device = new Device();
         device.setShortAddress("FFFF");
         device.setEndpoint((byte)0xFF);
 
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(gatewayId);
-        GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(deviceTokenRelation.getGatewayName());
+        GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(scene.getGatewayName());
+        if (gatewayGroup == null){
+            System.err.println("网关不在线");
+            return "error";
+        }
         String ip = gatewayGroup.getIp();
 
 
@@ -181,6 +192,23 @@ public class SceneController{
             System.err.println("数据库更新错误");
             return  "error";
         }
+        return "success";
+    }
+
+    @RequestMapping(value = "/useScene/{scene_id}", method = RequestMethod.POST)
+    @ResponseBody
+    public String useScene(@PathVariable("scene_id")Integer scene_id){
+        Scene scene = sceneService.getSceneBySceneId(scene_id);
+        GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(scene.getGatewayName());
+
+        if (gatewayGroup == null){
+            System.err.println("网关不在线");
+            return "error";
+        }
+
+        GatewayMethod gatewayMethod = new GatewayMethodImpl();
+        gatewayMethod.callScene(scene.getSceneId(), gatewayGroup.getIp());
+
         return "success";
     }
 }

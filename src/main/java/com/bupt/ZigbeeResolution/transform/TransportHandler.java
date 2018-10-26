@@ -84,7 +84,8 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         String ctxip = channel.toString();
         String ip = getRemoteAddress(ctx);
         for (Channel ch : group) {
-            ips = ip.substring(1, ip.length() - 6);
+            //Integer position =ip.lastIndexOf(":");
+            ips = ip.substring(1);
             if (ch == channel){
                 System.out.println(SocketServer.bytesToHexString(msg));
                 if (byteA3 == 30) {
@@ -186,8 +187,8 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     public static String getIPString(ChannelHandlerContext ctx) {
         String ipString = "";
         String socketString = ctx.channel().remoteAddress().toString();
-        int colonAt = socketString.indexOf(":");
-        ipString = socketString.substring(1, colonAt);
+        //int colonAt = socketString.indexOf(":");
+        ipString = socketString.substring(1);
         return ipString;
     }
 

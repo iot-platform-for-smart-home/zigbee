@@ -95,7 +95,7 @@ public class RpcMessageCallBack implements MqttCallback{
 							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
 
 							byte bright;
-							bright = (byte)(0xFF & jsonObject.get("bright").getAsInt());
+							bright = (byte)(0xFF & Integer.parseInt(jsonObject.get("bright").getAsString()));
 							//System.out.println("进入控制");
 
 							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
@@ -125,7 +125,7 @@ public class RpcMessageCallBack implements MqttCallback{
 							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
 
 							byte state;
-							state = (byte)(0xFF & jsonObject.get("status").getAsInt());
+							state = (byte)(0xFF & Integer.parseInt(jsonObject.get("status").getAsString()));
 							//System.out.println("进入控制");
 
 							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));

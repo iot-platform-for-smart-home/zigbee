@@ -16,7 +16,7 @@ public class RpcMqttClient {
 
 //    public static String rpcToken = "gbNJ8K5a0Hggwd66vHqn";
 //    public static String RPC_TOPIC = "v1/devices/me/rpc/request/+";
-    static MqttClient rpcMqtt;
+    MqttClient rpcMqtt;
     private String token;
     private GatewayGroupService gatewayGroupService;
 

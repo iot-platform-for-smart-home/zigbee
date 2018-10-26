@@ -65,7 +65,7 @@ public interface GatewayMethod {
                 byte irId, int transition);
 
   // 调用场景
-  void callScene(String sceneId);
+  void callScene(String sceneId, String ip);
 
   // 获取设备信息
   void getDeviceInfo(Device device);
