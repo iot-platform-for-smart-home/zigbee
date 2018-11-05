@@ -43,7 +43,7 @@ public interface GatewayMethod {
   void changeDeviceName(Device device, String name);
 
   //删除指定设备
-  void deleteDevice(Device divice);
+  void deleteDevice(Device device,String ip);
 
   //设置指定设备的开关状态
   void setDeviceState(Device device, byte state, String ip);
@@ -84,7 +84,7 @@ public interface GatewayMethod {
   void setSwitchBindScene(Device device, String sceneId, String ip);
 
   // 获取绑定记录
-  void getBindRecord(Device device);
+  void getBindRecord(Device device, String ip);
 
   // 取消场景开关和场景的绑定
   void cancelBindOfSwitchAndScene(Device device, String clusterId);

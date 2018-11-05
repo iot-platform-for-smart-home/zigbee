@@ -386,10 +386,10 @@ public class DataService {
                 byte recordId = bytes[3];
                 byte[] sourceAddress = Arrays.copyOfRange(bytes, 4, 5);
                 byte sourceEndPoint = bytes[6];
-                switch(bytes[8]){
+                switch(bytes[7]){
                     case (byte) 0x01:
                         System.out.print("场景 => ");
-                        byte scene_id = bytes[10];
+                        byte scene_id = bytes[9];
                         System.out.print("长度: " + length +
                                 " | 记录ID: " + recordId +
                                 " | 源地址: " + byte2HexStr(sourceAddress) +

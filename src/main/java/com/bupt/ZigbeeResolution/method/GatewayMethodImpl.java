@@ -11,6 +11,7 @@ import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 import java.util.Map;
 
@@ -402,7 +403,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
     }
 
-    public void deleteDevice(Device device){
+    public void deleteDevice(Device device,String ip){
         byte[] bytes = new byte[21];
 
         int index = 0;
@@ -422,7 +423,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index] = device.getEndpoint();
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void setDeviceState(Device device, byte state, String ip) {
@@ -761,7 +762,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void getBindRecord(Device device) {
+    public void getBindRecord(Device device, String ip) {
         byte[] bytes = new byte[10];
 
         int index = 0;
@@ -775,7 +776,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x01;
         bytes[index] = (byte) 0x08;
         sendMessage = TransportHandler.getSendContent(12, bytes);
-        SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     @Override
@@ -815,7 +816,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         if(deviceTokenRelation == null){
             String token = null;
             String type = DataService.deviceId2Type(device.getDeviceId());
-            Integer deviceNumber = deviceTokenRelationService.getDeviceNumber(gatewayName, type);
+            Integer deviceNumber = deviceTokenRelationService.getDeviceNumber()+1;
             DeviceTokenRelation gateway = deviceTokenRelationService.getGateway(gatewayName);
             //httpControl.httplogin();
             if(!device.getSnid().equals("") && device.getSnid()!=null)
@@ -835,7 +836,14 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
             }
             if(!gatewayName.equals(deviceTokenRelation.getGatewayName())){
                 deviceTokenRelationService.updateGatewayName(gatewayName, device.getIEEE());
-                //TODO 向平台发送变更父设备的请求
+                String deviceJson = httpControl.httpGetDevice(deviceTokenRelation.getUuid());
+                DeviceTokenRelation gatewayInfo = deviceTokenRelationService.getGateway(gatewayName);
+
+                JsonObject jsonObject =(JsonObject) new JsonParser().parse(deviceJson);
+                jsonObject.remove("parentDeviceId");
+                jsonObject.addProperty("parentDeviceId",gatewayInfo.getUuid());
+
+                httpControl.UpdateDevice(jsonObject.toString());
             }else{
                 DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
             }

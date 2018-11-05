@@ -138,6 +138,42 @@ public class SceneController{
         return sceneDeviceList;
     }
 
+    @RequestMapping(value = "/getSceneByGateway/{gatewayName}", method = RequestMethod.GET)
+    @ResponseBody
+    public String getSceneByGateway(@PathVariable("gatewayName")String gatewayName){
+        JsonArray sceneArray = new JsonArray();
+
+        String[] gateway = gatewayName.split("_");
+        String gatewayNumber = gateway[1];
+        List<Scene> scenes = sceneService.getSceneByGateway(gatewayNumber);
+
+        for(Scene scene:scenes){
+            JsonObject jsonObject = new JsonObject();
+            JsonArray jsonArray = new JsonArray();
+            jsonObject.addProperty("scene_id",scene.getScene_id());
+            jsonObject.addProperty("sceneId", scene.getSceneId());
+            String sceneName = scene.getSceneName();
+            int i = sceneName.lastIndexOf("_");
+            sceneName = sceneName.substring(0,i);
+            jsonObject.addProperty("sceneName", sceneName);
+            jsonObject.addProperty("sceneNumber",scene.getSceneNumber());
+            List<SceneDevice> sceneDeviceList = sceneDeviceService.getSceneDevice(scene.getScene_id());
+            for(SceneDevice sceneDevice : sceneDeviceList){
+                JsonObject sceneDeviceObject = new JsonObject();
+                sceneDeviceObject.addProperty("deviceId", sceneDevice.getDeviceId());
+                sceneDeviceObject.addProperty("data1", sceneDevice.getData1());
+                sceneDeviceObject.addProperty("data2", sceneDevice.getData2());
+                sceneDeviceObject.addProperty("data3", sceneDevice.getData3());
+                sceneDeviceObject.addProperty("data4", sceneDevice.getData4());
+                jsonArray.add(sceneDeviceObject);
+            }
+            jsonObject.add("detail",jsonArray);
+            sceneArray.add(jsonObject);
+        }
+
+        return sceneArray.toString();
+    }
+
     @RequestMapping(value="/deleteScene/{scene_id}", method = RequestMethod.DELETE)
     @ResponseBody
     public String deleteScene(@PathVariable("scene_id")Integer scene_id){
@@ -210,5 +246,21 @@ public class SceneController{
         gatewayMethod.callScene(scene.getSceneId(), gatewayGroup.getIp());
 
         return "success";
+    }
+
+    @RequestMapping(value = "/getBindScene/{deviceId}", method = RequestMethod.POST)
+    @ResponseBody
+    public String getBindScene(@PathVariable String deviceId){
+        Device device = new Device();
+
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(deviceId);
+        device.setShortAddress(deviceTokenRelation.getShortAddress());
+        device.setEndpoint(deviceTokenRelation.getEndPoint().byteValue());
+
+        GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(deviceTokenRelation.getGatewayName());
+        GatewayMethod gatewayMethod = new GatewayMethodImpl();
+        gatewayMethod.getBindRecord(device, gatewayGroup.getIp());
+
+        return "";
     }
 }

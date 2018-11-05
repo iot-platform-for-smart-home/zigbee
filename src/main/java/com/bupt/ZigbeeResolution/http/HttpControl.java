@@ -128,4 +128,44 @@ public class HttpControl {
         return null;
     }
 
+    public String httpGetDevice(String id) throws Exception{
+        Request requestCreate = new Request.Builder()
+                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device/" + id.toString())
+                .get()
+                .addHeader("Accept", "application/json, text/plain, */*")
+                .addHeader("Connection", "keep-alive")
+                //.addHeader("Cookie", session.toString())
+                .build();
+        Response response = mOkHttpClient.newCall(requestCreate).execute();
+        if (response.isSuccessful()) {
+
+            String result = response.body().string();
+            return result;
+        }
+        return null;
+    }
+
+    public String UpdateDevice(String deviceInfo) throws IOException {
+
+        RequestBody bodyCreate = RequestBody.create(js, deviceInfo);
+
+        Request requestCreate = new Request.Builder()
+                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device")
+                .post(bodyCreate)
+                .addHeader("Accept","application/json, text/plain, */*")
+//                .addHeader("Accept","text/plain, */*, q=0.01")
+                .addHeader("Connection","keep-alive")
+                .addHeader("Content-Type","application/json;charset=UTF-8")
+                //.addHeader("Cookie",session.toString())
+                .build();
+        //得到一个call对象
+        Response response = mOkHttpClient.newCall(requestCreate).execute();
+        if (response.isSuccessful()){
+            return response.body().string();
+        }else{
+            //httplogin();
+            System.out.println(response.body().string());
+            return null;
+        }
+    }
 }

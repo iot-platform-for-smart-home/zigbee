@@ -24,6 +24,9 @@ public interface SceneMapper {
     @Select("SELECT * FROM scene WHERE scene_id = #{scene_id}")
     Scene getSceneBySceneId(@Param("scene_id") Integer scene_id);
 
+    @Select("SELECT * FROM scene WHERE gatewayName = #{gatewayName}")
+    List<Scene> getSceneByGateway(@Param("gatewayName")String gatewayName);
+
     @Delete("DELETE FROM scene WHERE scene_id = #{scene_id}")
     Integer deleteSceneBySceneId(@Param("scene_id") Integer scene_id);
 

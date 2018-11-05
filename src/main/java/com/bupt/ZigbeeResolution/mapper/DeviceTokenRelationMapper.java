@@ -22,8 +22,8 @@ public interface DeviceTokenRelationMapper {
     @Select("SELECT * FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = 'Gateway'")
     DeviceTokenRelation getGateway(@Param("gatewayName") String gatewayName);
 
-    @Select("SELECT count(*) FROM deviceTokenRelation WHERE type = #{type}")
-    Integer getdeviceNumber(@Param("gatewayName") String gatewayName, @Param("type") String type);
+    @Select("SELECT id FROM deviceTokenRelation ORDER BY id DESC LIMIT 1")
+    Integer getdeviceNumber();
 
     @Select("SELECT * FROM deviceTokenRelation WHERE uuid = #{uuid}")
     DeviceTokenRelation getRelationByUuid(@Param("uuid") String uuid);
@@ -33,4 +33,7 @@ public interface DeviceTokenRelationMapper {
 
     @Update("UPDATE deviceTokenRelation SET gatewayName = #{gatewayName} WHERE IEEE = #{IEEE}")
     Integer updateGatewayName(@Param("gatewayName")String gatewayName,@Param("IEEE") String IEEE);
+
+    @Delete("DELETE FROM deviceTokenRelation WHERE IEEE = #{IEEE}")
+    Integer deleteDeviceByIEEE(@Param("IEEE")String IEEE);
 }

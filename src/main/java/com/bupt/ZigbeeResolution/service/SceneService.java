@@ -49,4 +49,6 @@ public class SceneService {
         Integer i = sceneMapper.updateGatewayName(gatewayName, scene_id);
         return  i == 1;
     }
+
+    public List<Scene> getSceneByGateway(String gatewayName){return  sceneMapper.getSceneByGateway(gatewayName);}
 }

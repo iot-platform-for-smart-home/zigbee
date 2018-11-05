@@ -21,8 +21,8 @@ public class DeviceTokenRelationService {
         return i==1;
     }
 
-    public Integer getDeviceNumber(String gatewayName, String type){
-        return deviceTokenRelationMapper.getdeviceNumber(gatewayName, type);
+    public Integer getDeviceNumber(){
+        return deviceTokenRelationMapper.getdeviceNumber();
     }
 
     public Integer updateShortAddress(String shortAddress, String IEEE){
@@ -47,5 +47,10 @@ public class DeviceTokenRelationService {
 
     public DeviceTokenRelation getRelationByUuid(String uuid){
         return deviceTokenRelationMapper.getRelationByUuid(uuid);
+    }
+
+    public Boolean deleteDeviceByIEEE(String IEEE){
+        Integer i = deviceTokenRelationMapper.deleteDeviceByIEEE(IEEE);
+        return i==1;
     }
 }
