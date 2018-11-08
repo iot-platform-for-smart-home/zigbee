@@ -89,6 +89,10 @@ public interface GatewayMethod {
   // 取消场景开关和场景的绑定
   void cancelBindOfSwitchAndScene(Device device, String clusterId);
 
+  void permitDeviceJoinTheGateway(String ip);
+
+  void permitDeviceJoinTheGateway_CallBack();
+
   void setSwitchBindScene_CallBack();
 
   void getBindRecord_CallBack();

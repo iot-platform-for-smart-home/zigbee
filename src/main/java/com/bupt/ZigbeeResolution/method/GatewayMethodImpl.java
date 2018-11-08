@@ -794,6 +794,25 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 //        bytes[index++] = (byte) 0x00;
     }
 
+    public void permitDeviceJoinTheGateway(String ip){
+        byte[] bytes = new byte[8];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x08;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index] = (byte) 0x9F;
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void permitDeviceJoinTheGateway_CallBack(){
+
+    }
+
     @Override
     public void setSwitchBindScene_CallBack() {
 
