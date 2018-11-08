@@ -816,7 +816,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         if(deviceTokenRelation == null){
             String token = null;
             String type = DataService.deviceId2Type(device.getDeviceId());
-            Integer deviceNumber = deviceTokenRelationService.getDeviceNumber()+1;
+            Integer deviceNumber = deviceTokenRelationService.getDeviceNumber();
             DeviceTokenRelation gateway = deviceTokenRelationService.getGateway(gatewayName);
             //httpControl.httplogin();
             if(!device.getSnid().equals("") && device.getSnid()!=null)

@@ -22,7 +22,7 @@ public interface DeviceTokenRelationMapper {
     @Select("SELECT * FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = 'Gateway'")
     DeviceTokenRelation getGateway(@Param("gatewayName") String gatewayName);
 
-    @Select("SELECT id FROM deviceTokenRelation ORDER BY id DESC LIMIT 1")
+    @Select("SELECT auto_increment FROM information_schema.tables where table_schema='BUPT_IOT' and table_name='deviceTokenRelation'")
     Integer getdeviceNumber();
 
     @Select("SELECT * FROM deviceTokenRelation WHERE uuid = #{uuid}")
