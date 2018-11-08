@@ -28,7 +28,7 @@ public class DataService {
 
 
 
-    public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService) throws Exception {
+    public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, GatewayGroupService gatewayGroupService) throws Exception {
         System.out.println("进入");
         byte Response = bytes[0];
         switch (Response){
@@ -58,7 +58,7 @@ public class DataService {
                 device.setElectric(Double.valueOf(String.valueOf(bytes[23+nameLength+snLength])));
                 device.setRecentState(Arrays.copyOfRange(bytes, length-4, length));
                 System.out.println("完成解析");
-                gatewayMethod.device_CallBack(device, gatewayName, deviceTokenRelationService);
+                gatewayMethod.device_CallBack(device, gatewayName, deviceTokenRelationService, gatewayGroupService);
                 break;
 
             case 0x15:

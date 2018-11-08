@@ -2,6 +2,7 @@ package com.bupt.ZigbeeResolution.method;
 
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
+import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.SceneService;
 
 import java.util.Map;
@@ -99,7 +100,7 @@ public interface GatewayMethod {
 
   void cancelBindOfSwitchAndScene_CallBack();
 
-  void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception;
+  void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, GatewayGroupService gatewayGroupService) throws Exception;
 
   void gateway_CallBack(Gateway gateway);
 

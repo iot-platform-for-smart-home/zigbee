@@ -5,6 +5,7 @@ import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
 import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
+import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.SceneService;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
@@ -829,7 +830,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
+    public void device_CallBack(Device device, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, GatewayGroupService gatewayGroupService) throws Exception {
         System.out.println(device.toString());
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())));
         if(deviceTokenRelation == null){
@@ -846,6 +847,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                 DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress(), id);
                 deviceTokenRelationService.addARelation(newDeviceTokenRelation);
                 DataMessageClient.publishAttribute(token, device.toString());
+            }else{
+                GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayName);
+
+                GatewayMethod gatewayMethod = new GatewayMethodImpl();
+                gatewayMethod.getAllDevice(gatewayGroup.getIp());
             }
 
         }else{

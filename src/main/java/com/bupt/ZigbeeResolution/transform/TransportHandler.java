@@ -149,7 +149,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         response = 0x00;
                     }*/
                     String gatewayName = gatewayGroupService.getGatewayNameByIp(ips);
-                    dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService);
+                    dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService);
                     //chs.writeAndFlush(msg);
                 }
             }

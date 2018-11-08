@@ -32,11 +32,31 @@ public class DeviceController {
 
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(singleDeviceTokenRelation.getGatewayName());
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
+        if(gatewayGroup.getIp()==null){
+            return "error";
+        }
         gatewayMethod.deleteDevice(device, gatewayGroup.getIp());
 
         if(deviceTokenRelationService.deleteDeviceByIEEE(singleDeviceTokenRelation.getIEEE())){
             return "error";
         }
+        return "success";
+    }
+
+    @RequestMapping(value = "/addNewDevice/{gatewayName}", method = RequestMethod.GET)
+    @ResponseBody
+    public String addMewDevice(@PathVariable("gatewayName") String gatewayName){
+        String[] gateway = gatewayName.split("_");
+        String gatewayNumber = gateway[1];
+
+        GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayNumber);
+
+        if(gatewayGroup.getIp()==null){
+            return "error|Gateway Offline";
+        }
+        GatewayMethod gatewayMethod = new GatewayMethodImpl();
+        gatewayMethod.permitDeviceJoinTheGateway(gatewayGroup.getIp());
+
         return "success";
     }
 }
