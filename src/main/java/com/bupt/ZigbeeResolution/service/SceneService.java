@@ -18,8 +18,8 @@ public class SceneService {
         return i==1;
     }
 
-    public Scene getSceneBySceneName(String sceneName){
-        return sceneMapper.getSceneByName(sceneName);
+    public Scene getSceneBySceneName(String sceneNickName){
+        return sceneMapper.getSceneByName(sceneNickName);
     }
 
     public Boolean updateScene(Scene scene){
@@ -51,4 +51,8 @@ public class SceneService {
     }
 
     public List<Scene> getSceneByGateway(String gatewayName){return  sceneMapper.getSceneByGateway(gatewayName);}
+
+    public Integer getSceneNumber(){
+        return sceneMapper.getSceneNumber();
+    }
 }

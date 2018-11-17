@@ -7,6 +7,7 @@ public class Scene {
     Integer scene_id;
     String sceneId;
     String sceneName;
+    String sceneNickName;
     int sceneNumber;
     Integer customerId;
     String sceneSelectorId;
@@ -14,15 +15,17 @@ public class Scene {
 
     public Scene(){}
 
-    public Scene(String sceneName, Integer customerId){
+    public Scene(String sceneName, String sceneNickName, Integer customerId){
         this.sceneName = sceneName;
+        this.sceneNickName = sceneNickName;
         this.customerId =customerId;
     }
 
-    public Scene(Integer scene_id, String sceneId, String sceneName, Integer sceneNumber, Integer customerId, String sceneSelectorId, String gatewayName){
+    public Scene(Integer scene_id, String sceneId, String sceneName, String sceneNickName,Integer sceneNumber, Integer customerId, String sceneSelectorId, String gatewayName){
         this.scene_id = scene_id;
         this.sceneId = sceneId;
         this.sceneName = sceneName;
+        this.sceneNickName = sceneNickName;
         this.sceneNumber =sceneNumber;
         this.customerId =customerId;
         this.sceneSelectorId = sceneSelectorId;

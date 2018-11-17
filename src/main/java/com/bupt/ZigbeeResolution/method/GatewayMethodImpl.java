@@ -14,6 +14,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.util.List;
 import java.util.Map;
 
 public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod{
@@ -847,17 +848,25 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                 DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())), token, type, gatewayName, device.getShortAddress(), id);
                 deviceTokenRelationService.addARelation(newDeviceTokenRelation);
                 DataMessageClient.publishAttribute(token, device.toString());
+                JsonObject jsonObject = new JsonObject();
+                if(device.getOnlineState()==3){
+                    jsonObject.addProperty("online",1D);
+                }else{
+                    jsonObject.addProperty("online",0D);
+                }
+                DataMessageClient.publishData(token,jsonObject.toString());
             }else{
-                GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayName);
+/*                GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayName);
 
                 GatewayMethod gatewayMethod = new GatewayMethodImpl();
-                gatewayMethod.getAllDevice(gatewayGroup.getIp());
+                gatewayMethod.getAllDevice(gatewayGroup.getIp());*/
             }
 
         }else{
             if(!device.getShortAddress().equals(deviceTokenRelation.getShortAddress())){
                 deviceTokenRelationService.updateShortAddress(device.getShortAddress(), device.getIEEE());
                 DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
+                JsonObject jsonObject = new JsonObject();
             }
             if(!gatewayName.equals(deviceTokenRelation.getGatewayName())){
                 deviceTokenRelationService.updateGatewayName(gatewayName, device.getIEEE());
@@ -869,9 +878,18 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                 jsonObject.addProperty("parentDeviceId",gatewayInfo.getUuid());
 
                 httpControl.UpdateDevice(jsonObject.toString());
+                DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
             }else{
                 DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
             }
+
+            JsonObject jsonObject = new JsonObject();
+            if(device.getOnlineState()==3){
+                jsonObject.addProperty("online",1D);
+            }else{
+                jsonObject.addProperty("online",0D);
+            }
+            DataMessageClient.publishData(deviceTokenRelation.getToken(),jsonObject.toString());
         }
 
     }
@@ -1040,8 +1058,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     @Override
     public void data_CallBack(String shortAddress, int endPoint, Map<String,Double> data, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        Gson gson = new Gson();
-        String jsonStr = gson.toJson(data);
-        DataMessageClient.publishData(deviceTokenRelation.getToken(),jsonStr);
+        List<DeviceTokenRelation> deviceTokenRelations = deviceTokenRelationService.getRelationByIEEE(deviceTokenRelation.getIEEE());
+        for(DeviceTokenRelation deviceTokenRelation1 : deviceTokenRelations) {
+            Gson gson = new Gson();
+            String jsonStr = gson.toJson(data);
+            DataMessageClient.publishData(deviceTokenRelation1.getToken(), jsonStr);
+        }
     }
 }

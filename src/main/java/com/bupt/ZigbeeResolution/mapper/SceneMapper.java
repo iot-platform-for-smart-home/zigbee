@@ -8,12 +8,12 @@ import java.util.List;
 @Mapper
 public interface SceneMapper {
 
-    @Insert("INSERT INTO scene (sceneName,customerId) VALUES (#{sceneName}, #{customerId})")
+    @Insert("INSERT INTO scene (sceneName,sceneNickName,customerId) VALUES (#{sceneName}, #{sceneNickName}, #{customerId})")
     @Options(useGeneratedKeys = true, keyProperty = "scene_id", keyColumn = "scene_id")
     Integer addSceneOnlySceneName(Scene scene);
 
-    @Select("SELECT * FROM scene WHERE sceneName = #{sceneName}")
-    Scene getSceneByName(@Param("sceneName") String sceneName);
+    @Select("SELECT * FROM scene WHERE sceneNickName = #{sceneNickName}")
+    Scene getSceneByName(@Param("sceneNickName") String sceneNickName);
 
     @Update("UPDATE scene SET sceneId = #{sceneId}, sceneNumber = #{sceneNumber} WHERE sceneName = #{sceneName}")
     Integer updateScene(Scene scene);
@@ -35,5 +35,8 @@ public interface SceneMapper {
 
     @Update("UPDATE scene SET gatewayName = #{gatewayName} WHERE scene_id = #{scene_id}")
     Integer updateGatewayName(@Param("gatewayName")String gatewayName, @Param("scene_id") Integer scene_id);
+
+    @Select("SELECT auto_increment FROM information_schema.tables where table_schema='BUPT_IOT' and table_name='scene'")
+    Integer getSceneNumber();
 
 }

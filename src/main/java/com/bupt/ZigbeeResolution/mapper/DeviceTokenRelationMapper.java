@@ -3,6 +3,8 @@ package com.bupt.ZigbeeResolution.mapper;
 import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import org.apache.ibatis.annotations.*;
 
+import java.util.List;
+
 @Mapper
 public interface DeviceTokenRelationMapper {
 
@@ -21,6 +23,9 @@ public interface DeviceTokenRelationMapper {
 
     @Select("SELECT * FROM deviceTokenRelation WHERE gatewayName = #{gatewayName} AND type = 'Gateway'")
     DeviceTokenRelation getGateway(@Param("gatewayName") String gatewayName);
+
+    @Select("SELECT * FROM deviceTokenRelation WHERE IEEE = #{IEEE}")
+    List<DeviceTokenRelation> getRelationByIEEE(@Param("IEEE")String IEEE);
 
     @Select("SELECT auto_increment FROM information_schema.tables where table_schema='BUPT_IOT' and table_name='deviceTokenRelation'")
     Integer getdeviceNumber();

@@ -435,6 +435,7 @@ public class DataService {
                 Integer humidity;
                 Integer pm;
                 Integer human;
+                Double onlineStatus;
                 Map<String, Double> data = new ConcurrentHashMap<String, Double>();
 
                 length = Integer.parseInt(String.valueOf(bytes[1]));
@@ -482,7 +483,20 @@ public class DataService {
                             }
                         }
                         break;
+
                     case "EEFB":
+                        for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
+                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("D0F0")) {
+                                if (bytes[10 + i * 5] == 0x20) {
+                                    if(Integer.parseInt(String.valueOf(bytes[11+i*5])) == 3){
+                                        onlineStatus = 1D;
+                                    }else {
+                                        onlineStatus = 0D;
+                                    }
+                                    data.put("online", onlineStatus);
+                                }
+                            }
+                        }
                         break;
                 }
                 gatewayMethod.data_CallBack(shortAddress, endPoint, data, deviceTokenRelationService);
@@ -573,6 +587,9 @@ public class DataService {
                 break;
             case "0101":
                 type = "dimmableLight";
+                break;
+            case "0601":
+                type = "lightSensor";
                 break;
             case "0202":
                 type = "curtain";

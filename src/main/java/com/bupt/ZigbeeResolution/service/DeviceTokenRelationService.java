@@ -6,6 +6,8 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class DeviceTokenRelationService {
 
@@ -52,5 +54,9 @@ public class DeviceTokenRelationService {
     public Boolean deleteDeviceByIEEE(String IEEE){
         Integer i = deviceTokenRelationMapper.deleteDeviceByIEEE(IEEE);
         return i==1;
+    }
+
+    public List<DeviceTokenRelation> getRelationByIEEE(String IEEE){
+        return deviceTokenRelationMapper.getRelationByIEEE(IEEE);
     }
 }

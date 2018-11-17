@@ -36,12 +36,13 @@ public class SceneController{
     @ResponseBody
     public String addScene(@RequestBody String sceneInfo){
         JsonObject jsonObject = (JsonObject)new JsonParser().parse(sceneInfo);
-        String sceneName = jsonObject.get("sceneName").getAsString();
+        String sceneNickName = jsonObject.get("sceneName").getAsString();
         Integer customerId = jsonObject.get("customerId").getAsInt();
-        Scene scene = sceneService.getSceneBySceneName(sceneName+"_"+customerId);
+        Scene scene = sceneService.getSceneBySceneName(sceneNickName+"_"+customerId);
         Integer scene_id;
         if(scene==null) {
-            scene = new Scene(sceneName+"_"+customerId, customerId);
+            int sceneNumber = sceneService.getSceneNumber();
+            scene = new Scene("scene"+sceneNumber,sceneNickName+"_"+customerId, customerId);
             sceneService.addSceneOnlySceneName(scene);
             scene_id = scene.getScene_id();
         }else{
@@ -85,7 +86,7 @@ public class SceneController{
             String ip = gatewayGroupService.getGatewayIp(deviceRelation.getShortAddress(), deviceRelation.getEndPoint());
 
             GatewayMethod gatewayMethod = new GatewayMethodImpl();
-            gatewayMethod.addScene(device, data1, data2, data3, data4, sceneName+"_"+customerId,(byte)0x00, (byte)0x01,(byte)0x00, ip);
+            gatewayMethod.addScene(device, data1, data2, data3, data4, "scene"+scene_id,(byte)0x00, (byte)0x01,(byte)0x00, ip);
 
             SceneDevice sceneDevice = new SceneDevice(scene_id,deviceId,deviceInfo.get("data1").getAsInt(),deviceInfo.get("data2").getAsInt(),deviceInfo.get("data3").getAsInt(),deviceInfo.get("data4").getAsInt());
             if(sceneDeviceService.getSceneDeviceBySceneIdAndDeviceId(scene_id, deviceId)!=null){
