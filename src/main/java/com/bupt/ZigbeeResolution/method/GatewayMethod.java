@@ -82,6 +82,9 @@ public interface GatewayMethod {
   void setColorTemperature(Device device, int  value, int transition);
 
   // 命令场景开关绑定场景
+  void setSwitchBindDevice(Device sceneSelector, Device device, String ip);
+
+  // 命令场景开关绑定场景
   void setSwitchBindScene(Device device, String sceneId, String ip);
 
   // 获取绑定记录
@@ -90,9 +93,13 @@ public interface GatewayMethod {
   // 取消场景开关和场景的绑定
   void cancelBindOfSwitchAndScene(Device device, String clusterId);
 
+  void cancelBindOfSwitchAndDevice(Device sceneSelector, Device device, String ip);
+
   void permitDeviceJoinTheGateway(String ip);
 
   void permitDeviceJoinTheGateway_CallBack();
+
+  void setSwitchBindDevice_CallBack();
 
   void setSwitchBindScene_CallBack();
 

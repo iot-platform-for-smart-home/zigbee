@@ -732,6 +732,34 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
+    public void setSwitchBindDevice(Device sceneSelector, Device device,String ip){
+        byte[] bytes = new byte[31];
+
+        int index = 0;
+        bytes[index++] = (byte)0x1F;
+        bytes[index++] = (byte)0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x89;
+        bytes[index++] = (byte) 0x17;
+        System.arraycopy(TransportHandler.toBytes(sceneSelector.getShortAddress()), 0, bytes, index, 2);
+        index +=2;
+        bytes[index++] = sceneSelector.getEndpoint();
+        System.arraycopy(TransportHandler.toBytes(sceneSelector.getIEEE()), 0, bytes, index, 8);
+        index +=8;
+        bytes[index++] = device.getEndpoint();
+        System.arraycopy(TransportHandler.toBytes(device.getIEEE()), 0, bytes, index, 8);
+        index +=8;
+        bytes[index++] = (byte)0x06;
+        bytes[index] = (byte)0x04;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    @Override
     public void setSwitchBindScene(Device device, String sceneId,String ip) {
         byte[] bytes = new byte[23];
         sceneId = sceneId.substring(0,2);
@@ -796,6 +824,34 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 //        bytes[index++] = (byte) 0x00;
     }
 
+    @Override
+    public void cancelBindOfSwitchAndDevice(Device sceneSelector, Device device,String ip){
+        byte[] bytes = new byte[31];
+
+        int index = 0;
+        bytes[index++] = (byte)0x1F;
+        bytes[index++] = (byte)0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x96;
+        bytes[index++] = (byte) 0x17;
+        System.arraycopy(TransportHandler.toBytes(sceneSelector.getShortAddress()), 0, bytes, index, 2);
+        index +=2;
+        bytes[index++] = sceneSelector.getEndpoint();
+        System.arraycopy(TransportHandler.toBytes(sceneSelector.getIEEE()), 0, bytes, index, 8);
+        index +=8;
+        bytes[index++] = device.getEndpoint();
+        System.arraycopy(TransportHandler.toBytes(device.getIEEE()), 0, bytes, index, 8);
+        index +=8;
+        bytes[index++] = (byte)0x06;
+        bytes[index] = (byte)0x04;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
     public void permitDeviceJoinTheGateway(String ip){
         byte[] bytes = new byte[8];
 
@@ -812,6 +868,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     public void permitDeviceJoinTheGateway_CallBack(){
+
+    }
+
+    @Override
+    public void setSwitchBindDevice_CallBack() {
 
     }
 

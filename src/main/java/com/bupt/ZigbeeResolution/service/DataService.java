@@ -334,7 +334,7 @@ public class DataService {
 
             case 0x29:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
-                switch(bytes[3]){
+                switch(bytes[2]){
                     // 更改设备名返回值
                     case 0x03:
                         shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 4, 6));
@@ -346,7 +346,7 @@ public class DataService {
                         break;
 
                     case 0x04:
-                        switch(bytes[4]){
+                        switch(bytes[3]){
                             case (byte) 0x95:
                                 gatewayMethod.deleteDevice_CallBack();
                                 break;
@@ -368,7 +368,11 @@ public class DataService {
                             case (byte) 0xA8:
                                 gatewayMethod.setColorTemperature_CallBack();
                                 break;
+                            case (byte) 0x89:
+                                gatewayMethod.setSwitchBindDevice_CallBack();
                         }
+                        break;
+
                     case (byte)0x93:
                         device = new Device();
                         device.setShortAddress(byte2HexStr(new byte[]{bytes[5], bytes[6]}));

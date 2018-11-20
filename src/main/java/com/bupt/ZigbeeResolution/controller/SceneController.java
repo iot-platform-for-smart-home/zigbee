@@ -3,10 +3,7 @@ package com.bupt.ZigbeeResolution.controller;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
-import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
-import com.bupt.ZigbeeResolution.service.GatewayGroupService;
-import com.bupt.ZigbeeResolution.service.SceneDeviceService;
-import com.bupt.ZigbeeResolution.service.SceneService;
+import com.bupt.ZigbeeResolution.service.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -31,6 +28,9 @@ public class SceneController{
 
     @Autowired
     private GatewayGroupService gatewayGroupService;
+
+    @Autowired
+    private SceneSelectorRelationService sceneSelectorRelationService;
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
@@ -110,10 +110,11 @@ public class SceneController{
             JsonArray jsonArray = new JsonArray();
             jsonObject.addProperty("scene_id",scene.getScene_id());
             jsonObject.addProperty("sceneId", scene.getSceneId());
-            String sceneName = scene.getSceneName();
-            int i = sceneName.lastIndexOf("_");
-            sceneName = sceneName.substring(0,i);
-            jsonObject.addProperty("sceneName", sceneName);
+            String sceneNickName = scene.getSceneNickName();
+            int i = sceneNickName.lastIndexOf("_");
+            sceneNickName = sceneNickName.substring(0,i);
+            jsonObject.addProperty("sceneName", scene.getSceneName());
+            jsonObject.addProperty("sceneNickName",sceneNickName);
             jsonObject.addProperty("sceneNumber",scene.getSceneNumber());
             List<SceneDevice> sceneDeviceList = sceneDeviceService.getSceneDevice(scene.getScene_id());
             for(SceneDevice sceneDevice : sceneDeviceList){
@@ -153,10 +154,11 @@ public class SceneController{
             JsonArray jsonArray = new JsonArray();
             jsonObject.addProperty("scene_id",scene.getScene_id());
             jsonObject.addProperty("sceneId", scene.getSceneId());
-            String sceneName = scene.getSceneName();
-            int i = sceneName.lastIndexOf("_");
-            sceneName = sceneName.substring(0,i);
-            jsonObject.addProperty("sceneName", sceneName);
+            String sceneNickName = scene.getSceneNickName();
+            int i = sceneNickName.lastIndexOf("_");
+            sceneNickName = sceneNickName.substring(0,i);
+            jsonObject.addProperty("sceneName", scene.getSceneName());
+            jsonObject.addProperty("sceneNickName",sceneNickName);
             jsonObject.addProperty("sceneNumber",scene.getSceneNumber());
             List<SceneDevice> sceneDeviceList = sceneDeviceService.getSceneDevice(scene.getScene_id());
             for(SceneDevice sceneDevice : sceneDeviceList){
@@ -213,6 +215,13 @@ public class SceneController{
         String sceneSelectorId = jsonObject.get("sceneSelectorId").getAsString();
         Integer scene_id  = jsonObject.get("scene_id").getAsInt();
 
+        Integer bindType = sceneSelectorRelationService.getBindTypeBySceneSelectorId(sceneSelectorId);
+        if(bindType!=null){
+            if(bindType==2){
+                sceneSelectorRelationService.deleteBindInfoBySceneSelector(sceneSelectorId);
+            }
+        }
+
         Scene scene = sceneService.getSceneBySceneId(scene_id);
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelationByUuid(sceneSelectorId);
 
@@ -225,7 +234,9 @@ public class SceneController{
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
         gatewayMethod.setSwitchBindScene(device, scene.getSceneId(), gatewayGroup.getIp());
 
-        if(!sceneService.updateSceneSelector(sceneSelectorId, scene_id)){
+        SceneSelectorRelation sceneSelectorRelation = new SceneSelectorRelation(sceneSelectorId, 1, scene_id);
+
+        if(!sceneSelectorRelationService.addBindScene(sceneSelectorRelation)){
             System.err.println("数据库更新错误");
             return  "error";
         }
@@ -249,7 +260,7 @@ public class SceneController{
         return "success";
     }
 
-    @RequestMapping(value = "/getBindScene/{deviceId}", method = RequestMethod.POST)
+/*    @RequestMapping(value = "/getBindScene/{deviceId}", method = RequestMethod.POST)
     @ResponseBody
     public String getBindScene(@PathVariable String deviceId){
         Device device = new Device();
@@ -263,5 +274,5 @@ public class SceneController{
         gatewayMethod.getBindRecord(device, gatewayGroup.getIp());
 
         return "";
-    }
+    }*/
 }
