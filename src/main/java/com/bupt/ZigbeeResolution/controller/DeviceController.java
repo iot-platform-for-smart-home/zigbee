@@ -124,7 +124,7 @@ public class DeviceController {
     public String getSceneSelectorBind(@PathVariable("sceneSelectorId") String sceneSelectorId){
         List<SceneSelectorRelation> sceneSelectorRelations = sceneSelectorRelationService.getBindInfoBySceneSelectorId(sceneSelectorId);
         JsonObject jsonObject = new JsonObject();
-        if(sceneSelectorRelations==null){
+        if(sceneSelectorRelations.size()==0){
             return jsonObject.toString();
         }
         if(sceneSelectorRelations.get(0).getBindType()==1){

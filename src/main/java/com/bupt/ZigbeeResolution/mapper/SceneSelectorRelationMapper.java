@@ -22,7 +22,7 @@ public interface SceneSelectorRelationMapper {
     @Select("SELECT * FROM sceneSelectorRelation WHERE sceneSelectorId = #{sceneSelectorId} AND deviceId = #{deviceId}")
     SceneSelectorRelation getBindInfoBySceneSelectorIdAndDeviceId(@Param("sceneSelectorId") String sceneSelectorId, @Param("deviceId")String deviceId);
 
-    @Select("SELECT bindType FROM sceneSelectorRelation WHERE sceneSelectorId = #{sceneSelectorId}")
+    @Select("SELECT bindType FROM sceneSelectorRelation WHERE sceneSelectorId = #{sceneSelectorId} GROUP BY bindType")
     Integer getBindTypeBySceneSelectorId(@Param("sceneSelectorId") String sceneSelectorId);
 
     @Delete("DELETE FROM sceneSelectorRelation WHERE sceneSelectorId = #{sceneSelectorId} AND deviceId = #{deviceId}")

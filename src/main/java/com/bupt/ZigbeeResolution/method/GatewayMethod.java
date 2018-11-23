@@ -49,6 +49,9 @@ public interface GatewayMethod {
   //设置指定设备的开关状态
   void setDeviceState(Device device, byte state, String ip);
 
+  //设置指定设备的开关状态
+  void setAlarmState(Device device, byte state, String ip, int time);
+
   // 设置指定设备的亮度
   void setDeviceLevel(Device device ,byte value, int transition, String ip);
 

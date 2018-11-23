@@ -452,12 +452,43 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x00;
         bytes[index] = state;
 
+
         sendMessage = TransportHandler.getSendContent(12, bytes);
         System.out.println("下发指令");
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
-    @Override
+    public void setAlarmState(Device device, byte state, String ip,int time) {
+        System.out.println("进入setAlarmState");
+        byte[] bytes = new byte[24];
+
+        int index = 0;
+        bytes[index++] = (byte) 0x18;
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x82;
+        bytes[index++] = (byte) 0x0F;
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index=index+TransportHandler.toBytes(device.getShortAddress()).length;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = state;
+        bytes[index++] = (byte)(time & 0xFF);
+        bytes[index] = (byte)((time >> 8) & 0xFF);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        System.out.println("下发指令");
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
     public void setDeviceLevel(Device device, byte value, int transition, String ip) {
         byte[] bytes = new byte[24];
 
@@ -765,14 +796,14 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         sceneId = sceneId.substring(0,2);
 
         int index = 0;
-        bytes[index++] = (byte) 0x18;
+        bytes[index++] = (byte) 0x1F;
         bytes[index++] = (byte) 0x00;
         for (int i = 0; i < 4; i++){
             bytes[index++] = (byte) 0xFF;
         }
         bytes[index++] = (byte) 0xFE;
-        bytes[index++] = (byte) 0x8d;
-        bytes[index++] = (byte) 0x0F;
+        bytes[index++] = (byte) 0x8D;
+        bytes[index++] = (byte) 0x08;
         bytes[index++] = (byte) 0x02;
         System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, 2);
         index = index + 2;

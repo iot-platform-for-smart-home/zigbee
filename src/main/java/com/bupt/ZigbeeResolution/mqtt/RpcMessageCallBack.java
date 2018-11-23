@@ -144,6 +144,37 @@ public class RpcMessageCallBack implements MqttCallback{
 						break;
 				}
 				break;
+
+			case "control alarm":
+				switch (jsonObject.get("methodName").getAsString()){
+					case "setstate":
+						try {
+							Device controlDevice = new Device();
+							controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
+							controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
+
+							byte state;
+							state = (byte)(0xFF & Integer.parseInt(jsonObject.get("status").getAsString()));
+							int time = jsonObject.get("time").getAsInt();
+
+									//System.out.println("进入控制");
+
+							String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
+							if (ip == null) {
+								System.out.println("Gateway offline");
+								//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+							}
+
+
+							System.out.println(ip);
+							gatewayMethod.setAlarmState(controlDevice,state,ip,time);
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"success");
+						}catch (Exception e){
+							System.out.println(e);
+						}
+
+						break;
+				}
 		}
 
 

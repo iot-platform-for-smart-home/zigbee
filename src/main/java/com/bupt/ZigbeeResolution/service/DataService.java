@@ -592,6 +592,9 @@ public class DataService {
             case "0101":
                 type = "dimmableLight";
                 break;
+            case "0201":
+                type = "colourDimmableLight";
+                break;
             case "0601":
                 type = "lightSensor";
                 break;

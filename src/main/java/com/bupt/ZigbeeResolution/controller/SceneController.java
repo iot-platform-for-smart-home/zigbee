@@ -217,9 +217,7 @@ public class SceneController{
 
         Integer bindType = sceneSelectorRelationService.getBindTypeBySceneSelectorId(sceneSelectorId);
         if(bindType!=null){
-            if(bindType==2){
-                sceneSelectorRelationService.deleteBindInfoBySceneSelector(sceneSelectorId);
-            }
+            sceneSelectorRelationService.deleteBindInfoBySceneSelector(sceneSelectorId);
         }
 
         Scene scene = sceneService.getSceneBySceneId(scene_id);
