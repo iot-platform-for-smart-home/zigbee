@@ -3,14 +3,13 @@ package com.bupt.ZigbeeResolution.service;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.google.gson.JsonObject;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class DataService {
     private static List<Object> list = new LinkedList<Object>();
@@ -438,9 +437,10 @@ public class DataService {
                 Double temperature;
                 Integer humidity;
                 Integer pm;
-                Integer human;
+                Integer alarm;
+                Integer illumination;
                 Double onlineStatus;
-                Map<String, Double> data = new ConcurrentHashMap<String, Double>();
+                JsonObject data = new JsonObject();
 
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 String shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
@@ -455,12 +455,12 @@ public class DataService {
                                     BigDecimal b = new BigDecimal((double)dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5))/(double) 100);
                                     temperature = b.setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue();
                                     //System.out.println(temperature);
-                                    data.put("temperature", temperature);
+                                    data.addProperty("temperature", temperature);
                                 }
                             }else if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("1100")){
                                 if(bytes[10+i*5] == 0x29) {
                                     humidity = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
-                                    data.put("humidity" , humidity.doubleValue());
+                                    data.addProperty("humidity" , humidity.doubleValue());
                                 }
                             }
                         }
@@ -471,7 +471,7 @@ public class DataService {
                             if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0000")) {
                                 if (bytes[10 + i * 5] == 0x21) {
                                     pm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
-                                    data.put("PM2.5", pm.doubleValue());
+                                    data.addProperty("PM2.5", pm.doubleValue());
                                 }
                             }
                         }
@@ -481,8 +481,34 @@ public class DataService {
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
                             if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0000")) {
                                 if (bytes[10 + i * 5] == 0x21) {
-                                    human = Integer.parseInt(String.valueOf(bytes[11+i*5]));
-                                    data.put("PIR_status", human.doubleValue());
+                                    alarm = Integer.parseInt(String.valueOf(bytes[11+i*5]));
+                                    data.addProperty("PIR_status", alarm.doubleValue());
+                                }
+                            }
+                        }
+                        break;
+
+                    case "0005":
+                        for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
+                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("8000")) {
+                                if (bytes[10 + i * 5] == 0x21) {
+                                    alarm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                    if(alarm==16){
+                                        data.addProperty("alarm", 0D);
+                                    }else{
+                                        data.addProperty("alarm", 1D);
+                                    }
+                                }
+                            }
+                        }
+                        break;
+
+                    case "0004":
+                        for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
+                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0000")) {
+                                if (bytes[10 + i * 5] == 0x21) {
+                                    illumination = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                    data.addProperty("illumination", illumination.doubleValue());
                                 }
                             }
                         }
@@ -497,10 +523,98 @@ public class DataService {
                                     }else {
                                         onlineStatus = 0D;
                                     }
-                                    data.put("online", onlineStatus);
+                                    data.addProperty("online", onlineStatus);
                                 }
                             }
                         }
+                        break;
+
+                    case "0101":
+                        int amount = Integer.parseInt(String.valueOf(bytes[7]));
+                        if(byte2HexStr(Arrays.copyOfRange(bytes, 8 , 10)).equals("F5F0")){
+                            String dataType ;
+                            if(bytes[10]==0x42){
+                                dataType = "String";
+                            }
+                            int length = (int) (bytes[11] & 0xFF);
+                            if(bytes[12]==0x20){
+                                switch(bytes[13]){
+                                    case 0x00:
+                                        data.addProperty("unlock method", "password");
+                                        break;
+                                    case 0x02:
+                                        data.addProperty("unlock method", "fingerprint");
+                                        break;
+                                    case 0x03:
+                                        data.addProperty("unlock method", "card");
+                                        break;
+                                    case 0x04:
+                                        data.addProperty("unlock method", "remote");
+                                        break;
+                                    case 0x05:
+                                        data.addProperty("unlock method", "multiple ways");
+                                        break;
+                                }
+                                data.addProperty("operate", Integer.parseInt(String.valueOf(bytes[14])));
+                                data.addProperty("userId",byte2HexStr(Arrays.copyOfRange(bytes, 15 , 17)));
+                                data.addProperty("eventTime", byte2HexStr(Arrays.copyOfRange(bytes, 18 , 22)));
+                                int lockStateLength = (int) (bytes[22] & 0xFF);
+                                byte[] lockState = byteToBit(bytes[23]);
+                                String lockStateValue ="";
+                                for(int i =0;i<8;i++){
+                                    if(lockState[i]==0x01){
+                                        switch(i){
+                                            case 0:
+                                                lockStateValue = lockStateValue+"|Enable the door lock to open normally";
+                                                break;
+                                            case 1:
+                                                lockStateValue = lockStateValue+"|Disable the door lock to open normally";
+                                                break;
+                                            case 3:
+                                                lockStateValue = lockStateValue+"|Verify the administrator to enter the menu";
+                                                break;
+                                            case 4:
+                                                lockStateValue = lockStateValue+"|Double verification mode";
+                                                break;
+                                            case 7:
+                                                lockStateValue = lockStateValue+"|Duress alarm";
+                                                break;
+                                        }
+                                    }
+                                }
+                                data.addProperty("lockState",lockStateValue);
+                            }else if(bytes[12]==0x01){
+                                data.addProperty("operate",2);
+                                if(bytes[13]!=0x00){
+                                    return;
+                                }
+                            }else if(bytes[12]==0x00){
+                                data.addProperty("operate",1);
+                                if(bytes[13]!=0x00){
+                                    return;
+                                }
+                            }
+                        }
+                        break;
+
+                    case "0100":
+                        int reportAmount = Integer.parseInt(String.valueOf(bytes[7]));
+                        if(byte2HexStr(Arrays.copyOfRange(bytes, 8 , 10)).equals("2100")){
+                            if (bytes[10] == 0x20) {
+                                double electricPercent = ((int) (bytes[11] & 0xFF)) / 2D;
+                                data.addProperty("electric(%)", electricPercent);
+                            }
+                        }
+                        if(byte2HexStr(Arrays.copyOfRange(bytes, 12 , 14)).equals("3E00")){
+                            if (bytes[14] == 0x1B) {
+                                if(byte2HexStr(Arrays.copyOfRange(bytes, 15 , 19)).equals("00000001")){
+                                    data.addProperty("lowPowerAlarm",true);
+                                }else if(byte2HexStr(Arrays.copyOfRange(bytes, 15 , 19)).equals("00000000")){
+                                    data.addProperty("lowPowerAlarm",false);
+                                }
+                            }
+                        }
+
                         break;
                 }
                 gatewayMethod.data_CallBack(shortAddress, endPoint, data, deviceTokenRelationService);
@@ -589,6 +703,9 @@ public class DataService {
             case "0900":
                 type = "outlet";
                 break;
+            case "0A00":
+                type = "lock";
+                break;
             case "0101":
                 type = "dimmableLight";
                 break;
@@ -597,6 +714,9 @@ public class DataService {
                 break;
             case "0601":
                 type = "lightSensor";
+                break;
+            case "6101":
+                type = "infrared";
                 break;
             case "0202":
                 type = "curtain";
@@ -612,5 +732,13 @@ public class DataService {
                 break;
         }
         return type;
+    }
+
+    public static byte[] byteToBit(byte n){
+        byte[] bit = new byte[8];
+        for(int i = 0; i<8;i++){
+            bit[i] = (byte)((n >> i) & 0x1);
+        }
+        return bit;
     }
 }

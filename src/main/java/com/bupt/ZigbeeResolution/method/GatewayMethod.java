@@ -4,8 +4,7 @@ import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.service.SceneService;
-
-import java.util.Map;
+import com.google.gson.JsonObject;
 
 public interface GatewayMethod {
   void getAllDevice(String ip) throws Exception;
@@ -93,6 +92,10 @@ public interface GatewayMethod {
   // 获取绑定记录
   void getBindRecord(Device device, String ip);
 
+  void setLock(Device device, int[] password, String ip, byte state);
+
+  void controlIR(Device device, String ip, byte[] data, byte method);
+
   // 取消场景开关和场景的绑定
   void cancelBindOfSwitchAndScene(Device device, String clusterId);
 
@@ -168,5 +171,5 @@ public interface GatewayMethod {
 
   void setColorTemperature_CallBack();
 
-  void data_CallBack(String shortAddress, int endPoint, Map<String,Double> data, DeviceTokenRelationService deviceTokenRelationService) throws Exception;
+  void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService) throws Exception;
 }

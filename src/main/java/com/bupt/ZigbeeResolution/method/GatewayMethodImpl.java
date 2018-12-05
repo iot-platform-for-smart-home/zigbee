@@ -10,14 +10,13 @@ import com.bupt.ZigbeeResolution.service.SceneService;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import java.util.List;
-import java.util.Map;
 
 public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod{
+    static int id = 1;
 
     HttpControl httpControl = new HttpControl();
 
@@ -313,6 +312,29 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get("10.108.219.22").writeAndFlush(sendMessage);
+    }
+
+    public void controlIR(Device device, String ip, byte[] data, byte method){
+        byte[] bytes = new byte[data.length+13];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (data.length+13));
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) (0xFF & (data.length+4));
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = method;
+        System.arraycopy(data,0,bytes,index,data.length);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void getTaskDetail(Task task){
@@ -898,6 +920,38 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
+    public void setLock(Device device, int[] password, String ip, byte state){
+        byte[] bytes = new byte[password.length+23];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF &(password.length+23));
+        bytes[index++] = (byte) 0x00;
+        for (int i = 0; i < 4; i++){
+            bytes[index++] = (byte) 0xFF;
+        }
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0x82;
+        bytes[index++] = (byte) (0xFF &(password.length+14));
+        bytes[index++] = (byte) 0x02;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index=index+TransportHandler.toBytes(device.getShortAddress()).length;
+        for (int i = 0; i < 6; i++){
+            bytes[index++] = (byte) 0x00;
+        }
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = state;
+        bytes[index++] = (byte) (0xFF &(password.length));
+        for(int i = 0;i<password.length;i++){
+            bytes[index++] = (byte) (0xFF & password[i]);
+        }
+
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
     public void permitDeviceJoinTheGateway_CallBack(){
 
     }
@@ -1148,12 +1202,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void data_CallBack(String shortAddress, int endPoint, Map<String,Double> data, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
+    public void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
         List<DeviceTokenRelation> deviceTokenRelations = deviceTokenRelationService.getRelationByIEEE(deviceTokenRelation.getIEEE());
         for(DeviceTokenRelation deviceTokenRelation1 : deviceTokenRelations) {
-            Gson gson = new Gson();
-            String jsonStr = gson.toJson(data);
+            String jsonStr = data.toString();
             DataMessageClient.publishData(deviceTokenRelation1.getToken(), jsonStr);
         }
     }
