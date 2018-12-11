@@ -18,24 +18,22 @@ public class RpcMessageCallBack implements MqttCallback{
 	private RpcMqttClient rpcMqttClient;
 	private GatewayMethod gatewayMethod = new GatewayMethodImpl();
 
-	public RpcMessageCallBack(MqttClient rpcMqtt,String token, GatewayGroupService gatewayGroupService){
+	public RpcMessageCallBack(MqttClient rpcMqtt,String token, GatewayGroupService gatewayGroupService, String gatewayName){
 		this.token = token;
-		this.rpcMqttClient = new RpcMqttClient(token, gatewayGroupService);
+		this.rpcMqttClient = new RpcMqttClient(gatewayName,token, gatewayGroupService);
 		this.gatewayGroupService = gatewayGroupService;
 	}
 
 	@Override
 	public void connectionLost(Throwable arg0) {
-		// TODO Auto-generated method stub
-		
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 		//SecondActivity.wrapper.init();
-		rpcMqttClient.init();
+		while (!rpcMqttClient.init()){
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	@Override

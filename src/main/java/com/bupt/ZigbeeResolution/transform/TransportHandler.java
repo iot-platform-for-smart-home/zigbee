@@ -121,10 +121,10 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         token = hc.httpfind(id);
                         DeviceTokenRelation newDeviceTokenRelation = new DeviceTokenRelation(id, 0, token,"Gateway", name,"0000", id);
                         deviceTokenRelationService.addARelation(newDeviceTokenRelation);
-                        RpcMqttClient rpcMqttClient = new RpcMqttClient(token, gatewayGroupService);
+                        RpcMqttClient rpcMqttClient = new RpcMqttClient(name, token, gatewayGroupService);
                         rpcMqttClient.init();
                     }else{
-                        RpcMqttClient rpcMqttClient = new RpcMqttClient(deviceTokenRelation.getToken(), gatewayGroupService);
+                        RpcMqttClient rpcMqttClient = new RpcMqttClient(deviceTokenRelation.getGatewayName(), deviceTokenRelation.getToken(), gatewayGroupService);
                         rpcMqttClient.init();
                     }
 
