@@ -26,6 +26,7 @@ public class RpcMessageCallBack implements MqttCallback{
 
 	@Override
 	public void connectionLost(Throwable arg0) {
+		System.out.println("进入mqtt断线回调");
 		//SecondActivity.wrapper.init();
 		while (!rpcMqttClient.init()){
 			try {

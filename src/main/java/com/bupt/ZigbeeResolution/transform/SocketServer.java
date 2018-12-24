@@ -25,6 +25,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class SocketServer {
@@ -82,7 +83,7 @@ public class SocketServer {
                         //ch.pipeline().addLast("frameEncoder", new LengthFieldPrepender(4));
                         ch.pipeline().addLast("bytesEncoder", new ByteArrayEncoder());
                         ch.pipeline().addLast(new OutBoundHandler());
-                        ch.pipeline().addLast(new IdleStateHandler(0,0,300), new TransportHandler(userService,gatewayGroupService,deviceTokenRelationService, sceneService));
+                        ch.pipeline().addLast(new IdleStateHandler(60,0,0, TimeUnit.SECONDS), new TransportHandler(userService,gatewayGroupService,deviceTokenRelationService, sceneService));
                     }
                 });
             //b.bind(port);

@@ -11,11 +11,16 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.group.ChannelGroup;
 import io.netty.channel.group.DefaultChannelGroup;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import io.netty.util.concurrent.GlobalEventExecutor;
+import org.eclipse.paho.client.mqttv3.MqttClient;
 
 import java.util.Arrays;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implements GenericFutureListener<Future<? super Void>> {
     private UserService userService;
@@ -23,6 +28,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     private DeviceTokenRelationService deviceTokenRelationService;
     private SceneService sceneService;
 
+    public static Map<String, MqttClient> mqttMap = new ConcurrentHashMap<>();
     private HttpControl hc = new HttpControl();
     public static final ChannelGroup group = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
     public static final ChannelGroup channelgroups = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
@@ -69,10 +75,39 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         // ɾ��Channel Map�е�ʧЧClient
         String ip =getRemoteAddress(ctx);
-        System.out.println("设备下线:"+ip.substring(1, ip.length() - 6));
-        gatewayGroupService.removeGatewayGroupByIp(ip.substring(1, ip.length() - 6));
-        SocketServer.getMap().remove(getIPString(ctx));
+        System.out.println("设备下线:"+ip.substring(1));
+        String gatewayName = gatewayGroupService.getGatewayNameByIp(ip.substring(1));
+        if(gatewayName!=null){
+            gatewayGroupService.removeGatewayGroupByIp(ip.substring(1));
+            SocketServer.getMap().remove(getIPString(ctx));
+
+            mqttMap.get(gatewayName).disconnect();
+            mqttMap.get(gatewayName).close();
+            mqttMap.remove(gatewayName);
+        }
         ctx.close().sync();
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception{
+        System.out.println("已经60秒未收到客户端的消息了！");
+        if (evt instanceof IdleStateEvent){
+            IdleStateEvent event = (IdleStateEvent)evt;
+            if (event.state()== IdleState.READER_IDLE){
+                String ip =getRemoteAddress(ctx);
+                System.out.println("设备超时下线:"+ip.substring(1));
+                String gatewayName = gatewayGroupService.getGatewayNameByIp(ip.substring(1));
+                if(gatewayName!=null){
+                    gatewayGroupService.removeGatewayGroupByIp(ip.substring(1));
+                    SocketServer.getMap().remove(getIPString(ctx));
+
+                    mqttMap.get(gatewayName).disconnect();
+                    mqttMap.get(gatewayName).close();
+                    mqttMap.remove(gatewayName);
+                }
+                ctx.close().sync();
+            }
+        }
     }
 
     @Override
@@ -86,6 +121,16 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
         for (Channel ch : group) {
             //Integer position =ip.lastIndexOf(":");
             ips = ip.substring(1);
+            String checkGatewayName = gatewayGroupService.getGatewayNameByIp(ips);
+            if(checkGatewayName!=null){
+                if(!mqttMap.containsKey(checkGatewayName) && byteA3 != 81){
+                    DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getGateway(checkGatewayName);
+                    RpcMqttClient rpcMqttClient = new RpcMqttClient(checkGatewayName, deviceTokenRelation.getToken(), gatewayGroupService);
+                    rpcMqttClient.init();
+                }
+            }
+
+
             if (ch == channel){
                 System.out.println(SocketServer.bytesToHexString(msg));
                 if (byteA3 == 30) {
@@ -123,9 +168,11 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         deviceTokenRelationService.addARelation(newDeviceTokenRelation);
                         RpcMqttClient rpcMqttClient = new RpcMqttClient(name, token, gatewayGroupService);
                         rpcMqttClient.init();
+                        //mqttMap.put(ips, rpcMqttClient.getMqttClient());
                     }else{
                         RpcMqttClient rpcMqttClient = new RpcMqttClient(deviceTokenRelation.getGatewayName(), deviceTokenRelation.getToken(), gatewayGroupService);
                         rpcMqttClient.init();
+                        //mqttMap.put(ips, rpcMqttClient.getMqttClient());
                     }
 
 
