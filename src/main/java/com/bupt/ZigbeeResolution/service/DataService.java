@@ -27,7 +27,7 @@ public class DataService {
 
 
 
-    public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, GatewayGroupService gatewayGroupService) throws Exception {
+    public void resolution(byte[] bytes, String gatewayName, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, GatewayGroupService gatewayGroupService, SceneRelationService sceneRelationService) throws Exception {
         System.out.println("进入");
         byte Response = bytes[0];
         switch (Response){
@@ -441,6 +441,7 @@ public class DataService {
                 Integer illumination;
                 Double onlineStatus;
                 JsonObject data = new JsonObject();
+                String sceneSelectorUseSceneId;
 
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 String shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
@@ -509,6 +510,17 @@ public class DataService {
                                 if (bytes[10 + i * 5] == 0x21) {
                                     illumination = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
                                     data.addProperty("illumination", illumination.doubleValue());
+                                }
+                            }
+                        }
+                        break;
+
+                    case "F0F0":
+                        for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++){
+                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("F0F0")) {
+                                if (bytes[10 + i * 5] == 0x20) {
+                                    sceneSelectorUseSceneId = byte2HexStr(Arrays.copyOfRange(bytes, 11 + i * 5, 12 + i * 5))+"00";
+                                    data.addProperty("sceneId", sceneSelectorUseSceneId);
                                 }
                             }
                         }
@@ -617,7 +629,7 @@ public class DataService {
 
                         break;
                 }
-                gatewayMethod.data_CallBack(shortAddress, endPoint, data, deviceTokenRelationService);
+                gatewayMethod.data_CallBack(shortAddress, endPoint, data, deviceTokenRelationService, sceneService, sceneRelationService, gatewayGroupService);
                 break;
         }
         System.out.println("完成");

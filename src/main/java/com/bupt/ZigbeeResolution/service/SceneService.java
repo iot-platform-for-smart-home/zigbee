@@ -52,6 +52,8 @@ public class SceneService {
 
     public List<Scene> getSceneByGateway(String gatewayName){return  sceneMapper.getSceneByGateway(gatewayName);}
 
+    public Scene getSceneByGatewayAndSceneId(String gatewayName, String sceneId){return sceneMapper.getSceneByGatewayAndSceneId(gatewayName, sceneId);}
+
     public Integer getSceneNumber(){
         return sceneMapper.getSceneNumber();
     }

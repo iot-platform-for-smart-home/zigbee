@@ -3,6 +3,7 @@ package com.bupt.ZigbeeResolution.method;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
+import com.bupt.ZigbeeResolution.service.SceneRelationService;
 import com.bupt.ZigbeeResolution.service.SceneService;
 import com.google.gson.JsonObject;
 
@@ -171,5 +172,5 @@ public interface GatewayMethod {
 
   void setColorTemperature_CallBack();
 
-  void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService) throws Exception;
+  void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService,  GatewayGroupService gatewayGroupService) throws Exception;
 }

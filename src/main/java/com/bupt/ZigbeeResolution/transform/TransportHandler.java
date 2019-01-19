@@ -27,6 +27,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
     private GatewayGroupService gatewayGroupService;
     private DeviceTokenRelationService deviceTokenRelationService;
     private SceneService sceneService;
+    private SceneRelationService sceneRelationService;
 
     public static Map<String, MqttClient> mqttMap = new ConcurrentHashMap<>();
     private HttpControl hc = new HttpControl();
@@ -44,11 +45,12 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
 
     public static GatewayMethodImpl gatewayMethod = new GatewayMethodImpl();
 
-    public TransportHandler(UserService userService, GatewayGroupService gatewayGroupService, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService) {
+    public TransportHandler(UserService userService, GatewayGroupService gatewayGroupService, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService) {
         this.userService = userService;
         this.gatewayGroupService = gatewayGroupService;
         this.deviceTokenRelationService = deviceTokenRelationService;
         this.sceneService = sceneService;
+        this.sceneRelationService = sceneRelationService;
     }
 
 
@@ -196,7 +198,7 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         response = 0x00;
                     }*/
                     String gatewayName = gatewayGroupService.getGatewayNameByIp(ips);
-                    dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService);
+                    dataService.resolution(body, gatewayName, deviceTokenRelationService, sceneService, gatewayGroupService, sceneRelationService);
                     //chs.writeAndFlush(msg);
                 }
             }

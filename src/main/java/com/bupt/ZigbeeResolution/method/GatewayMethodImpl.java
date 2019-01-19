@@ -3,10 +3,7 @@ package com.bupt.ZigbeeResolution.method;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
-import com.bupt.ZigbeeResolution.service.DataService;
-import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
-import com.bupt.ZigbeeResolution.service.GatewayGroupService;
-import com.bupt.ZigbeeResolution.service.SceneService;
+import com.bupt.ZigbeeResolution.service.*;
 import com.bupt.ZigbeeResolution.transform.OutBoundHandler;
 import com.bupt.ZigbeeResolution.transform.SocketServer;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
@@ -1202,12 +1199,32 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
     }
 
     @Override
-    public void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService) throws Exception {
+    public void data_CallBack(String shortAddress, int endPoint, JsonObject data, DeviceTokenRelationService deviceTokenRelationService, SceneService sceneService, SceneRelationService sceneRelationService, GatewayGroupService gatewayGroupService) throws Exception {
         DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
-        List<DeviceTokenRelation> deviceTokenRelations = deviceTokenRelationService.getRelationByIEEE(deviceTokenRelation.getIEEE());
-        for(DeviceTokenRelation deviceTokenRelation1 : deviceTokenRelations) {
-            String jsonStr = data.toString();
-            DataMessageClient.publishData(deviceTokenRelation1.getToken(), jsonStr);
+        try{
+            String sceneId = data.get("sceneId").getAsString();
+            String gatewayName = deviceTokenRelation.getGatewayName();
+            Scene mainScene = sceneService.getSceneByGatewayAndSceneId(gatewayName, sceneId);
+            List<Integer> side_scene_ids = sceneRelationService.getSceneRelation(mainScene.getScene_id());
+            for(Integer side_scene_id: side_scene_ids){
+                Scene sideScene = sceneService.getSceneBySceneId(side_scene_id);
+                GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(sideScene.getGatewayName());
+                GatewayMethod gatewayMethod = new GatewayMethodImpl();
+                gatewayMethod.callScene(sideScene.getSceneId(), gatewayGroup.getIp());
+            }
+            return;
+
+
+        }catch (NullPointerException e){
+
+        }
+
+        if(deviceTokenRelation!=null) {
+            List<DeviceTokenRelation> deviceTokenRelations = deviceTokenRelationService.getRelationByIEEE(deviceTokenRelation.getIEEE());
+            for (DeviceTokenRelation deviceTokenRelation1 : deviceTokenRelations) {
+                String jsonStr = data.toString();
+                DataMessageClient.publishData(deviceTokenRelation1.getToken(), jsonStr);
+            }
         }
     }
 }

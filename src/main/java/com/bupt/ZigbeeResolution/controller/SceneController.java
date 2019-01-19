@@ -32,6 +32,9 @@ public class SceneController{
     @Autowired
     private SceneSelectorRelationService sceneSelectorRelationService;
 
+    @Autowired
+    private SceneRelationService sceneRelationService;
+
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
     public String addScene(@RequestBody String sceneInfo){
@@ -196,14 +199,14 @@ public class SceneController{
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
         gatewayMethod.deleteSceneMember(scene, device, ip);
 
-        if(sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)){
+        if(!sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)){
             System.err.println("删除场景设备错误！");
-            return "error";
+            //return "error";
         }
 
         if(!sceneService.deleteSceneBySceneId(scene_id)){
             System.err.println("删除场景错误！");
-            return "error";
+            //return "error";
         }
         return "success";
     }
@@ -257,7 +260,16 @@ public class SceneController{
 
         return "success";
     }
-
+    @RequestMapping(value = "/relatingScene/{main_scene_id}", method = RequestMethod.POST)
+    @ResponseBody
+    public String relatingScene(@PathVariable("main_scene_id")Integer main_scene_id, @RequestBody String relationInfo){
+        JsonObject jsonObject = (JsonObject) new JsonParser().parse(relationInfo);
+        for(JsonElement jsonElement :jsonObject.get("side_scene_ids").getAsJsonArray()){
+            Integer side_scene_id = jsonElement.getAsInt();
+            sceneRelationService.addSceneRelation(main_scene_id,side_scene_id);
+        }
+        return "success";
+    }
 /*    @RequestMapping(value = "/getBindScene/{deviceId}", method = RequestMethod.POST)
     @ResponseBody
     public String getBindScene(@PathVariable String deviceId){

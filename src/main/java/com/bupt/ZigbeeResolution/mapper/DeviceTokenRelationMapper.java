@@ -37,7 +37,7 @@ public interface DeviceTokenRelationMapper {
     Integer updateShortAddress(@Param("shortAddress")String shortAddress, @Param("IEEE")String IEEE);
 
     @Update("UPDATE deviceTokenRelation SET gatewayName = #{gatewayName} WHERE IEEE = #{IEEE}")
-    Integer updateGatewayName(@Param("gatewayName")String gatewayName,@Param("IEEE") String IEEE);
+    Integer updateGatewayName(@Param("gatewayName")String gatewayName, @Param("IEEE") String IEEE);
 
     @Delete("DELETE FROM deviceTokenRelation WHERE IEEE = #{IEEE}")
     Integer deleteDeviceByIEEE(@Param("IEEE")String IEEE);
