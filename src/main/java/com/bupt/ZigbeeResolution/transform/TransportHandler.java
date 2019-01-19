@@ -185,10 +185,10 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     gatewayMethod.getAllDevice(ips);
 
                 }
-                else  if (byteA3 == 12) {
+                else  if (byteA3 == 12) { // 0x0c
                     System.out.println(ctx.toString() + "控制数据" + SocketServer.bytesToHexString(msg));
                     //chs.writeAndFlush(msg);
-                } else if (byteA3 == 11) {
+                } else if (byteA3 == 11) { // 0x0b
 
                     System.out.println(ctx.toString() + "传感器数据" + SocketServer.bytesToHexString(msg));
                     byte[] body = new byte[msg.length-6];

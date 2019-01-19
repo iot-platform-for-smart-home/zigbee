@@ -217,8 +217,7 @@ public class RpcMessageCallBack implements MqttCallback{
                 switch (jsonObject.get("methodName").getAsString()){
                     case "learn":
                         byte learnMethod = 0x02;
-
-                        byte[] learnData = {0x03, 0x00, 0x10, 0x40};
+                        byte[] learnData = {0x03, 0x00, 0x30, 0x10, 0x40};
 
                         //String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
                         if (ip == null) {
@@ -226,27 +225,30 @@ public class RpcMessageCallBack implements MqttCallback{
                             //rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
                         }
                         gatewayMethod.controlIR(controlDevice, ip, learnData, learnMethod);
-
                         break;
 
 					case "penetrate":
 						byte penetrateMethod = 0x03;
-
 						byte[] penetrateData = TransportHandler.toBytes(jsonObject.get("penetrateData").getAsString());
-
 
 						if (ip == null) {
 							System.out.println("Gateway offline");
 							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
 						}
 						gatewayMethod.controlIR(controlDevice, ip, penetrateData, penetrateMethod);
-
 						break;
 
 					case "saveDataInGateway":
 						byte saveMethod = 0x04;
-						//TODO 拼接红外数据包
+						byte[] data = TransportHandler.toBytes(jsonObject.get("data").getAsString());
+						String name = jsonObject.get("IRDeviceName").getAsString();
 
+						if (ip == null) {
+							System.out.println("Gateway offline");
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+						}
+						gatewayMethod.IR_save_data_to_gateway(controlDevice, ip, data,name);
+						//TODO 拼接红外数据包
 						break;
 
 					case "selectDataInGateway":
@@ -286,6 +288,8 @@ public class RpcMessageCallBack implements MqttCallback{
 					case "cachePenetrate":
 						byte cacheMethod = 0x09;
 						//TODO 数据包到底是啥？
+						byte[] cacheData = TransportHandler.toBytes(jsonObject.get("sendData").getAsString());
+						gatewayMethod.IR_cache_pass_throwgh(controlDevice, ip, cacheData);
 						break;
 
 					case "selectCache":
@@ -298,9 +302,7 @@ public class RpcMessageCallBack implements MqttCallback{
 						break;
                 }
                 break;
-
 		}
-
 
 	}
 }

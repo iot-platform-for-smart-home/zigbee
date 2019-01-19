@@ -320,6 +320,34 @@ public class DataService {
                 }
                 break;
 
+            case 0x26:  // 红外宝
+                int index = 1;
+                int total_length = bytes[index++] & 0xff; // 总长度
+                shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, index, index+2));
+                index +=2;
+                endPoint = bytes[index++];
+                switch(bytes[index++]){
+                    case 0x02:  // 学习
+                        index += 6;
+                        break;
+                    case 0x03: // 透传
+                        break;
+                    case 0x04: // 保存数据到网关
+                        break;
+                    case 0x05: // 查询网关保存的红外数据
+                        break;
+                    case 0x06: // 发送网关保存的红外数据
+                        break;
+                    case 0x07: // 删除网关保存的红外数据
+                        break;
+                    case 0x09: // 缓存透传指令
+                        break;
+                    case 0x0a: // 查询缓存条目数量
+                        break;
+                    default:break;
+                }
+                break;
+
             case 0x27:
                 length = Integer.parseInt(String.valueOf(bytes[1]));
                 shortAddress = byte2HexStr(Arrays.copyOfRange(bytes, 2, 4));
@@ -345,6 +373,9 @@ public class DataService {
                         break;
 
                     case 0x04:
+                        if (bytes[2] == (byte)0xa7){
+                            System.out.println("查询网关内保存的红外数据返回");
+                        }
                         switch(bytes[3]){
                             case (byte) 0x95:
                                 gatewayMethod.deleteDevice_CallBack();
@@ -363,6 +394,11 @@ public class DataService {
                                 break;
                             case (byte) 0x9E:
                                 gatewayMethod.setReportTime_CallBack();
+                                break;
+                            case (byte) 0xA7:
+                                if (bytes[5] == (byte)0x01){
+                                    System.out.println("透传超时");
+                                }
                                 break;
                             case (byte) 0xA8:
                                 gatewayMethod.setColorTemperature_CallBack();
@@ -730,6 +766,9 @@ public class DataService {
             case "6101":
                 type = "infrared";
                 break;
+            case "6301":
+                type = "newInfrared";
+                break;
             case "0202":
                 type = "curtain";
                 break;
@@ -741,6 +780,9 @@ public class DataService {
                 break;
             case "0204":
                 type = "IASZone";
+                break;
+            default:
+                type = "unknown";
                 break;
         }
         return type;

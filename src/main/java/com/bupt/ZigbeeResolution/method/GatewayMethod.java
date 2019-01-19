@@ -97,6 +97,27 @@ public interface GatewayMethod {
 
   void controlIR(Device device, String ip, byte[] data, byte method);
 
+  // 透传情况
+  void IR_pass_through(Device device, String ip, byte[] data);
+
+  // 保存数据到网关
+  void IR_save_data_to_gateway(Device device, String ip, byte[] data, String name);
+
+  // 查询网关内保存的红外数据时
+  void IR_get_gatewayData(String ip);
+
+  // 发送网关内保存的红外数据
+  void IR_send_gatewayData(Device device, String ip);
+
+  // 删除网关内保存的红外数据
+  void IR_delete_gatewayData(Device device, String ip);
+
+  // 缓存透传指令
+  void IR_cache_pass_throwgh(Device device, String ip, byte[] data);
+
+  // 查询缓存条目数量
+  void IR_get_cache_quantity(Device device, String ip);
+
   // 取消场景开关和场景的绑定
   void cancelBindOfSwitchAndScene(Device device, String clusterId);
 

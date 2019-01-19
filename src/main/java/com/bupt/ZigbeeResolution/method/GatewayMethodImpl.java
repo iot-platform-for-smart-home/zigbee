@@ -334,6 +334,194 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
+    public void IR_pass_through(Device device, String ip, byte[] data){
+        byte[] bytes = new byte[data.length+15];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (data.length+15));
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) (0xFF & (data.length+6));
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03;  // 透传控制标志
+        bytes[index++] = (byte) (0xFF & (data.length));
+        bytes[index++] = (byte) (0x00);  // 第几包 TODO
+        if (data.length > 0) {
+            System.arraycopy(data, 0, bytes, index, data.length);
+        }
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_save_data_to_gateway(Device device, String ip, byte[] data, String name){
+        byte[] bytes = new byte[data.length+name.length()+19];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (data.length+name.length()+19));
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) (0xFF & (data.length+name.length()+10));
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x04;  // 保存数据标志
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;  // 两个保留字节
+        bytes[index++] = (byte) (0xFF & (data.length + name.length()+3));
+        if(data.length > 0) {
+            System.arraycopy(data, 0, bytes, index, data.length);
+            index += data.length;
+        }
+        bytes[index++] = (byte) (TransportHandler.toBytes(name).length);
+        System.arraycopy(TransportHandler.toBytes(name), 0, bytes, index, TransportHandler.toBytes(name).length);
+        index +=  TransportHandler.toBytes(name).length;
+        bytes[index++] = (byte) 0x01; // IR Id TODO
+        bytes[index] = (byte) 0x00;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_get_gatewayData(String ip){
+        byte[] bytes = new byte[13];
+
+        int index = 0;
+        bytes[index++] = (byte) (0x0D);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x04;
+        bytes[index++] = (byte) 0x00;  // 三个保留字节
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x00;
+        bytes[index] = (byte) 0x05;  // 查询网关保存红外数据控制标志
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_send_gatewayData(Device device, String ip){
+        byte[] bytes = new byte[20];
+
+        int index = 0;
+        bytes[index++] = (byte) (0x14);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x0B;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x06; // 发送网关内保存的红外数据标志
+        bytes[index++] = (byte) 0x04;
+        bytes[index++] = (byte) 0x00; // 后面的字节看不懂 TODO
+        bytes[index++] = (byte) 0x03;
+        bytes[index++] = (byte) 0x6F;
+        bytes[index++] = (byte) 0x66;
+        bytes[index] = (byte) 0x66;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_delete_gatewayData(Device device, String ip){
+        byte[] bytes = new byte[20];
+
+        int index = 0;
+        bytes[index++] = (byte) (0x14);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x0B;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x07; // 发送网关内保存的红外数据标志
+        bytes[index++] = (byte) 0x04; // 后面的字节看不懂 TODO
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x03;
+        bytes[index++] = (byte) 0x6F;
+        bytes[index++] = (byte) 0x66;
+        bytes[index] = (byte) 0x66;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_cache_pass_throwgh(Device device, String ip, byte[] data){
+        byte[] bytes = new byte[data.length+15];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & (data.length+15));
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) (0xFF & (data.length+7));
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x09;  // 缓存透传数据标志
+        bytes[index++] = (byte) (0xFF & (data.length));
+        bytes[index++] = (byte) (0x00);  // 保留字节
+        if (data.length >0) {
+            System.arraycopy(data, 0, bytes, index, data.length);
+        }
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_get_cache_quantity(Device device, String ip){
+        byte[] bytes = new byte[13];
+
+        int index = 0;
+        bytes[index++] = (byte) (0x0D);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x05;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index] = (byte) 0x0A;  // 查询缓存条目数量标志
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
     public void getTaskDetail(Task task){
         byte[] bytes = new byte[TransportHandler.toBytes(task.getTaskName()).length+10];
 
