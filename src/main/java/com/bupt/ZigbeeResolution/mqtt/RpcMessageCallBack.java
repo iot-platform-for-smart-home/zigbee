@@ -3,8 +3,10 @@ package com.bupt.ZigbeeResolution.mqtt;
 import com.bupt.ZigbeeResolution.data.Device;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.bupt.ZigbeeResolution.service.DataService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
@@ -110,9 +112,7 @@ public class RpcMessageCallBack implements MqttCallback{
 						}catch (Exception e){
 							System.out.println(e);
 						}
-
 						break;
-
 				}
 				break;
 
@@ -213,29 +213,93 @@ public class RpcMessageCallBack implements MqttCallback{
 				controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
 				controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
 				String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
+				String version = "";  // TODO query in database
+				int matchType = 5;
 
                 switch (jsonObject.get("methodName").getAsString()){
+					case "getVersion":
+						if (ip == null) {
+							System.out.println("Gateway offline");
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+						}
+						gatewayMethod.IR_get_version(controlDevice, ip);
+						// TODO return the version of response to miniprogram
+						break;
+
+					case "match":  // 码组匹配
+						version = jsonObject.get("version").getAsString();
+						matchType = jsonObject.get("matchType").getAsInt();
+						if (ip == null) {
+							System.out.println("Gateway offline");
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+						}
+						gatewayMethod.IR_match(controlDevice, ip, version, matchType);
+						break;
+
                     case "learn":
-                        byte learnMethod = 0x02;
-                        byte[] learnData = {0x03, 0x00, 0x30, 0x10, 0x40};
+                        //byte learnMethod = 0x02;
+                        //byte[] learnData = {0x30, 0x10, 0x40};
+						version = jsonObject.get("version").getAsString();
+						matchType = jsonObject.get("matchType").getAsInt();
+                        Integer learn_key = jsonObject.get("key").getAsInt();
 
                         //String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
                         if (ip == null) {
                             System.out.println("Gateway offline");
                             //rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
                         }
-                        gatewayMethod.controlIR(controlDevice, ip, learnData, learnMethod);
+                        gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
                         break;
 
 					case "penetrate":
-						byte penetrateMethod = 0x03;
-						byte[] penetrateData = TransportHandler.toBytes(jsonObject.get("penetrateData").getAsString());
+						//byte penetrateMethod = 0x03;
+						//byte[] penetrateData = TransportHandler.toBytes(jsonObject.get("penetrateData").getAsString());
+						version = jsonObject.get("version").getAsString();
+						matchType = jsonObject.get("matchType").getAsInt();
+						Integer control_key = jsonObject.get("key").getAsInt();
 
 						if (ip == null) {
 							System.out.println("Gateway offline");
 							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
 						}
-						gatewayMethod.controlIR(controlDevice, ip, penetrateData, penetrateMethod);
+						gatewayMethod.IR_penetrate(controlDevice, ip, version,0, matchType, control_key);
+						break;
+
+					case "currentKey":
+						version = jsonObject.get("version").getAsString();
+						if (ip == null) {
+							System.out.println("Gateway offline");
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+						}
+						gatewayMethod.IR_query_current_device_params(controlDevice, ip, version);
+						break;
+
+					case "deleteKey":
+						version = jsonObject.get("version").getAsString();
+						matchType = jsonObject.get("matchType").getAsInt();
+						Integer deleteKey = jsonObject.get("key").getAsInt();
+						if (ip == null) {
+							System.out.println("Gateway offline");
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+						}
+						gatewayMethod.IR_delete_learnt_key(controlDevice, ip, version, matchType, deleteKey);
+						break;
+
+					case "deleteAllKey":
+						version = jsonObject.get("version").getAsString();
+						if (ip == null) {
+							System.out.println("Gateway offline");
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+						}
+						gatewayMethod.IR_delete_learnt_all_key(controlDevice, ip, version);
+						break;
+
+					case "exit":
+						if (ip == null) {
+							System.out.println("Gateway offline");
+							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
+						}
+						gatewayMethod.IR_exit_learn_or_match(controlDevice, ip);
 						break;
 
 					case "saveDataInGateway":
@@ -303,6 +367,5 @@ public class RpcMessageCallBack implements MqttCallback{
                 }
                 break;
 		}
-
 	}
 }

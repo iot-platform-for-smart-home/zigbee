@@ -328,9 +328,9 @@ public class DataService {
                 endPoint = bytes[index++];
                 switch(bytes[index++]){
                     case 0x02:  // 学习
-                        index += 6;
                         break;
                     case 0x03: // 透传
+                        System.out.print("infrared");
                         break;
                     case 0x04: // 保存数据到网关
                         break;
@@ -794,5 +794,61 @@ public class DataService {
             bit[i] = (byte)((n >> i) & 0x1);
         }
         return bit;
+    }
+
+    public static byte[] intArray2ByteArray(int[] version_int) {
+        byte[] bytes = new byte[version_int.length];
+        for ( int i = 0; i < version_int.length; i++) {
+            bytes[i] = (byte) (0xFF & version_int[i]);
+        }
+        return bytes;
+    }
+
+    public static byte count_bytes(byte[] bytes) {
+        if (null == bytes || bytes.length <= 0){
+            return 0x00;
+        }
+        byte result = 0x00;
+        for(byte B : bytes ) {
+            result += B;
+        }
+        return (byte) result;
+    }
+
+    public static byte[] byteMergerAll(byte[]... values) {
+        int length_byte = 0;
+        for (int i = 0; i < values.length; i++) {
+            length_byte += values[i].length;
+        }
+        byte[] all_byte = new byte[length_byte];
+        int countLength = 0;
+        for (int i = 0; i < values.length; i++) {
+            byte[] b = values[i];
+            System.arraycopy(b, 0, all_byte, countLength, b.length);
+            countLength += b.length;
+        }
+        return all_byte;
+    }
+
+    public JsonObject getItem(String s){
+        if (s.length() <= 0)
+            return null;
+        JsonObject item = new JsonObject();
+
+        int i = 0;
+        String tmp = "";
+        while (i <= s.length() - 1 || s.charAt(i) != ' ') {
+            tmp += s.charAt(i);
+            i++;
+        }
+        i ++; // skip 0x20
+        item.addProperty("name", tmp);
+        tmp = "";
+        while (i <= s.length() - 1) {
+            tmp += s.charAt(i);
+            i++;
+        }
+        item.addProperty("pwd", tmp);
+        return item;
     }
 }

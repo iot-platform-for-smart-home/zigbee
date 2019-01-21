@@ -334,28 +334,276 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
-    public void IR_pass_through(Device device, String ip, byte[] data){
-        byte[] bytes = new byte[data.length+15];
+    public void IR_get_version(Device device, String ip) {
+        byte[] bytes = new byte[21];
 
         int index = 0;
-        bytes[index++] = (byte) (0xFF & (data.length+15));
+        bytes[index++] = (byte) (0xFF & 21);
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFF;
-        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0xA7;
-        bytes[index++] = (byte) (0xFF & (data.length+6));
+        bytes[index++] = (byte) 0x0C;
         System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
         index = index + TransportHandler.toBytes(device.getShortAddress()).length;
         bytes[index++] = device.getEndpoint();
-        bytes[index++] = (byte) 0x03;  // 透传控制标志
-        bytes[index++] = (byte) (0xFF & (data.length));
-        bytes[index++] = (byte) (0x00);  // 第几包 TODO
-        if (data.length > 0) {
-            System.arraycopy(data, 0, bytes, index, data.length);
-        }
+        bytes[index++] = (byte) 0x03;
+        bytes[index++] = (byte) 0x06;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x02;
+        bytes[index++] = (byte) 0x80;
+        bytes[index++] = (byte) 0x00;
+        bytes[index] = (byte) 0x82;
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_match(Device device, String ip, String version, int matchType) {
+        byte[] bytes = new byte[28];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & 28);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x13;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03; // infrare control type
+        bytes[index++] = (byte) 0x0D;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        //byte dataLength = (byte)(0xFF & (version.length() + 3));
+        bytes[index++] = (byte) 0x09;
+        byte[] version_byte = TransportHandler.toBytes(version);
+        System.arraycopy(version_byte, 0, bytes, index, version.length());
+        index = index + version.length();
+        bytes[index++] = (byte) 0x81;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) (0xFF & matchType);
+        byte count = DataService.count_bytes(version_byte);
+        bytes[index] = (byte) (9 + count + (byte) 0x81 + (byte)(0xFF & matchType));
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_learn(Device device, String ip, String version, int matchType, int key){
+        byte[] bytes = new byte[30];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & 30);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x15;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03; // infrare control type
+        bytes[index++] = (byte) 0x0F;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x0B;
+        byte[] version_byte = TransportHandler.toBytes(version);
+        System.arraycopy(version_byte, 0, bytes, index, version.length());
+        index = index + version.length();
+        bytes[index++] = (byte) 0x83;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) (0xFF & matchType);
+        bytes[index++] = (byte) (0x00FF & key);
+        bytes[index++] = (byte) (0x00FF & key);
+        byte count = DataService.count_bytes(version_byte);
+        bytes[index] = (byte) (0x0B + count + (byte) 0x82 + 0x01 + matchType + key);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_penetrate(Device device, String ip, String version, int seq, int matchType, int key){
+        byte[] bytes = new byte[30];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & 30);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x15;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03; // infrare control type
+        bytes[index++] = (byte) 0x0F;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x0B;
+        byte[] version_byte = TransportHandler.toBytes(version);
+        System.arraycopy(version_byte, 0, bytes, index, version.length());
+        index = index + version.length();
+        bytes[index++] = (byte) 0x82;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) (0xFF & matchType);
+        bytes[index++] = (byte) (0x00FF & key);
+        bytes[index++] = (byte) (0x00FF & key);
+        byte count = DataService.count_bytes(version_byte);
+        bytes[index] = (byte) (0x0B + count + (byte) 0x82 + 0x01 + matchType + key);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_query_current_device_params(Device device, String ip, String version) {
+        byte[] bytes = new byte[25];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & 25);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x11;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03; // infrare control type
+        bytes[index++] = (byte) 0x0B;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x08;
+        byte[] version_byte = TransportHandler.toBytes(version);
+        System.arraycopy(version_byte, 0, bytes, index, version.length());
+        index = index + version.length();
+        bytes[index++] = (byte) 0x84;
+        bytes[index++] = (byte) 0x00;
+        byte count = DataService.count_bytes(version_byte);
+        bytes[index] = (byte) (0x08 + count + (byte) 0x84 );
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_delete_learnt_key(Device device, String ip, String version, int matchType, int key) {
+        byte[] bytes = new byte[30];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & 30);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x15;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03; // infrare control type
+        bytes[index++] = (byte) 0x0F;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x0B;
+        byte[] version_byte = TransportHandler.toBytes(version);
+        System.arraycopy(version_byte, 0, bytes, index, version.length());
+        index = index + version.length();
+        bytes[index++] = (byte) 0x85;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) (0xFF & matchType);
+        bytes[index++] = (byte) (0x00FF & key);
+        bytes[index++] = (byte) (0x00FF & key);
+        byte count = DataService.count_bytes(version_byte);
+        bytes[index] = (byte) (0x0B + count + (byte) 0x82 + 0x01 + matchType + key);
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_delete_learnt_all_key(Device device, String ip, String version) {
+        byte[] bytes = new byte[25];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & 25);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x11;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03; // infrare control type
+        bytes[index++] = (byte) 0x0B;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x08;
+        byte[] version_byte = TransportHandler.toBytes(version);
+        System.arraycopy(version_byte, 0, bytes, index, version.length());
+        index = index + version.length();
+        bytes[index++] = (byte) 0x86;
+        bytes[index++] = (byte) 0x00;
+        byte count = DataService.count_bytes(version_byte);
+        bytes[index] = (byte) (0x08 + count + (byte) 0x84 );
+
+        sendMessage = TransportHandler.getSendContent(12, bytes);
+        SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
+    }
+
+    public void IR_exit_learn_or_match(Device device, String ip){
+        byte[] bytes = new byte[21];
+
+        int index = 0;
+        bytes[index++] = (byte) (0xFF & 21);
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFF;
+        bytes[index++] = (byte) 0xFE;
+        bytes[index++] = (byte) 0xA7;
+        bytes[index++] = (byte) 0x0C;
+        System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
+        index = index + TransportHandler.toBytes(device.getShortAddress()).length;
+        bytes[index++] = device.getEndpoint();
+        bytes[index++] = (byte) 0x03; // infrare control type
+        bytes[index++] = (byte) 0x06;
+        bytes[index++] = (byte) 0x00;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x55;
+        bytes[index++] = (byte) 0x02;
+        bytes[index++] = (byte) 0x8A;
+        bytes[index++] = (byte) 0x00;
+        bytes[index] = (byte) (0x02 + (byte)0x8A );
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
@@ -369,7 +617,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFF;
-        bytes[index++] = (byte) 0xFF ;
+        bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0xA7;
@@ -1137,6 +1385,18 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
+    public void IR_get_version_CallBack(Device device, String ip, byte[] version,
+                                        DeviceTokenRelationService deviceTokenRelationService,
+                                        GatewayGroupService gatewayGroupService)
+            throws Exception {
+        /*  上传版本属性  */
+        String version_str  = DataService.byte2HexStr(version);
+        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())));
+        JsonObject version_json = new JsonObject();
+        version_json.addProperty("version", version_str);
+        DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), version_json.toString());
+    }
+
     public void permitDeviceJoinTheGateway_CallBack(){
 
     }
@@ -1193,13 +1453,19 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                 gatewayMethod.getAllDevice(gatewayGroup.getIp());*/
             }
 
+            // if device type is infrare, get its version and then publish it
+            if (type == "infrared" || type == "newInfrared") {
+                String ip = gatewayGroupService.getGatewayIp(device.getShortAddress(), Integer.parseInt(String.valueOf(device.getEndpoint())));
+                IR_get_version(device, ip);
+            }
+
         }else{
-            if(!device.getShortAddress().equals(deviceTokenRelation.getShortAddress())){
+            if(!device.getShortAddress().equals(deviceTokenRelation.getShortAddress())){  // update shortAddress
                 deviceTokenRelationService.updateShortAddress(device.getShortAddress(), device.getIEEE());
                 DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
                 JsonObject jsonObject = new JsonObject();
             }
-            if(!gatewayName.equals(deviceTokenRelation.getGatewayName())){
+            if(!gatewayName.equals(deviceTokenRelation.getGatewayName())){  // update gateway name
                 deviceTokenRelationService.updateGatewayName(gatewayName, device.getIEEE());
                 String deviceJson = httpControl.httpGetDevice(deviceTokenRelation.getUuid());
                 DeviceTokenRelation gatewayInfo = deviceTokenRelationService.getGateway(gatewayName);

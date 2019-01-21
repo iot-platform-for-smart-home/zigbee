@@ -97,8 +97,34 @@ public interface GatewayMethod {
 
   void controlIR(Device device, String ip, byte[] data, byte method);
 
+  // 查询红外版本
+  void IR_get_version(Device device, String ip);
+
+  // 查询红外版本回调
+  void IR_get_version_CallBack(Device device, String ip, byte[] version,
+                               DeviceTokenRelationService deviceTokenRelationService,
+                               GatewayGroupService gatewayGroupService)throws Exception;
+
+  // 红外设备匹配
+  void IR_match(Device device, String ip, String version, int matchType);
+
   // 透传情况
-  void IR_pass_through(Device device, String ip, byte[] data);
+  void IR_penetrate(Device device, String ip, String version, int seq, int matchType, int key);
+
+  // 红外学习
+  void IR_learn(Device device, String ip, String version, int matchType, int key);
+
+  // 查询当前红外设备参数
+  void IR_query_current_device_params(Device device, String ip, String version);
+
+  // 删除某个学习好的按键数据
+  void IR_delete_learnt_key(Device device, String ip, String version, int matchType, int key);
+
+  // 删除所有学习好的按键数据
+  void IR_delete_learnt_all_key(Device device, String ip, String version);
+
+  // 退出学习或匹配
+  void IR_exit_learn_or_match(Device device, String ip);
 
   // 保存数据到网关
   void IR_save_data_to_gateway(Device device, String ip, byte[] data, String name);

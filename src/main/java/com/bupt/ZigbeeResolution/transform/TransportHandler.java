@@ -4,8 +4,10 @@ import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import com.bupt.ZigbeeResolution.data.GatewayGroup;
 import com.bupt.ZigbeeResolution.http.HttpControl;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
 import com.bupt.ZigbeeResolution.mqtt.RpcMqttClient;
 import com.bupt.ZigbeeResolution.service.*;
+import com.google.gson.JsonObject;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
@@ -151,8 +153,18 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                     } else if (s.length() == 17) {
                         name = s.substring(6, 12);
                         pwd = s.substring(13, 17);
+                    } else if (s.length() == 18) {
+                        name = s.substring(6,13);
+                        pwd = s.substring(14,18);
+                    } else if (s.length() == 19) {
+                        name = s.substring(6,14);
+                        pwd = s.substring(15,19);
                     }
-                    //User user = new User(name, pwd);
+                    /*  用空格分割网关名和密码
+                    JsonObject item = dataService.getItem(s.substring(6, s.length()));
+                    name = item.get("name").getAsString();
+                    pwd = item.get("pwd").getAsString();
+                    */
                     GatewayGroup gatewayGroup = new GatewayGroup(name, ips, ctxip);
                     if(gatewayGroupService.getGatewayGroup(name)!=null){
                         gatewayGroupService.removeGatewayGroupByName(name);
@@ -170,6 +182,9 @@ public class TransportHandler extends SimpleChannelInboundHandler<byte[]> implem
                         deviceTokenRelationService.addARelation(newDeviceTokenRelation);
                         RpcMqttClient rpcMqttClient = new RpcMqttClient(name, token, gatewayGroupService);
                         rpcMqttClient.init();
+                        JsonObject data = new JsonObject();
+                        data.addProperty("pwd", pwd);
+                        DataMessageClient.publishAttribute(id,data.toString());
                         //mqttMap.put(ips, rpcMqttClient.getMqttClient());
                     }else{
                         RpcMqttClient rpcMqttClient = new RpcMqttClient(deviceTokenRelation.getGatewayName(), deviceTokenRelation.getToken(), gatewayGroupService);
