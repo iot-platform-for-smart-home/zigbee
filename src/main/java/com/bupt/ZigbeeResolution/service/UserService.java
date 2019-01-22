@@ -1,6 +1,5 @@
 package com.bupt.ZigbeeResolution.service;
 
-import com.bupt.ZigbeeResolution.data.User;
 import com.bupt.ZigbeeResolution.mapper.UserMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -3,6 +3,7 @@ package com.bupt.ZigbeeResolution.service;
 import com.bupt.ZigbeeResolution.data.*;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
+import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
 import com.google.gson.JsonObject;
 
 import java.io.UnsupportedEncodingException;
@@ -469,7 +470,7 @@ public class DataService {
                 break;
 
             case 0x70:
-                //TODO 设备主动上报（目前只做实验室温湿度传感器和PM2.5传感器）
+                //TODO 设备主动上报（目前只做实验室温湿度传感器和PM2.5传感器） & 红外设备响应
                 Double temperature;
                 Integer humidity;
                 Integer pm;
@@ -484,6 +485,57 @@ public class DataService {
                 Integer endPoint = Integer.parseInt(String.valueOf(bytes[4]));
                 String clusterId = byte2HexStr(Arrays.copyOfRange(bytes, 5, 7));
                 switch(clusterId){
+                    case "0000":  // infrared
+                        int seq = (int)bytes[7];
+                        String attribute = byte2HexStr(Arrays.copyOfRange(bytes,8,10)); // 0A 40
+                        JsonObject json = new JsonObject();
+                        switch(bytes[21]){
+                            case (byte)0x81:  // 匹配
+                                //json.addProperty("matchRes", (int)bytes[24]);
+                                break;
+                            case (byte)0x82:  // 控制
+                                int key = bytes[24] + bytes[25] * 16;
+                                json.addProperty("key", key);
+                                break;
+                            case (byte)0x83:  // 学习
+                                int matchType = bytes[23];
+                                key = bytes[24] + bytes[25] * 16;
+                                json.addProperty("matchType", matchType);
+                                json.addProperty("key", key);
+                                //data.addProperty("learnRes", bytes[26]);
+                                break;
+                            case (byte)0x84:  // 查询当前设备参数
+                                int AC_key = bytes[23] + bytes[24] * 16;
+                                int TV_key = bytes[25] + bytes[26] * 16;
+                                int STB_key = bytes[27] + bytes[28] * 16;
+                                json.addProperty("AC_key", AC_key);
+                                json.addProperty("TV_key", TV_key);
+                                json.addProperty("STB_key", STB_key);
+                                json.addProperty("AC", bytes[29]==0xAA);
+                                json.addProperty("STB", bytes[30]==0xAA);
+                                json.addProperty("STB", bytes[31]==0xAA);
+                                break;
+                            case (byte)0x85:  // 删除某个学习的键
+                                matchType = bytes[23];
+                                key = bytes[24] + bytes[25] * 16;
+                                json.addProperty("matchType", matchType);
+                                json.addProperty("key", key);
+                                break;
+                            case (byte)0x86:  //
+                                //json.addProperty("deleteRes", 0);
+                                break;
+                            case (byte)0x8A:
+                                //json.addProperty("exitRes", 0);
+                                break;
+                            default:
+                                String version = byte2HexStr(Arrays.copyOfRange(bytes, 15, 21));
+                                json.addProperty("version", version);
+                                break;
+                        }
+                        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(shortAddress, endPoint);
+                        DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), json.toString());
+                        break;
+
                     case "0204":
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++){
                             if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("0000")){

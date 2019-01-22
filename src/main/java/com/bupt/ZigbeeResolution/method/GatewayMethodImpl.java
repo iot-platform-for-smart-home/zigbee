@@ -385,11 +385,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x55;
-        //byte dataLength = (byte)(0xFF & (version.length() + 3));
+        //byte dataLength = (byte)(0xFF & (version_byte.length + 3));
         bytes[index++] = (byte) 0x09;
         byte[] version_byte = TransportHandler.toBytes(version);
-        System.arraycopy(version_byte, 0, bytes, index, version.length());
-        index = index + version.length();
+        System.arraycopy(version_byte, 0, bytes, index, version_byte.length);
+        index = index + version_byte.length;
         bytes[index++] = (byte) 0x81;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
@@ -416,15 +416,15 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
         index = index + TransportHandler.toBytes(device.getShortAddress()).length;
         bytes[index++] = device.getEndpoint();
-        bytes[index++] = (byte) 0x03; // infrare control type
+        bytes[index++] = (byte) 0x03; // infrared control type
         bytes[index++] = (byte) 0x0F;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x0B;
         byte[] version_byte = TransportHandler.toBytes(version);
-        System.arraycopy(version_byte, 0, bytes, index, version.length());
-        index = index + version.length();
+        System.arraycopy(version_byte, 0, bytes, index, version_byte.length);
+        index = index + version_byte.length;
         bytes[index++] = (byte) 0x83;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
@@ -460,8 +460,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x0B;
         byte[] version_byte = TransportHandler.toBytes(version);
-        System.arraycopy(version_byte, 0, bytes, index, version.length());
-        index = index + version.length();
+        System.arraycopy(version_byte, 0, bytes, index, version_byte.length);
+        index = index + version_byte.length;
         bytes[index++] = (byte) 0x82;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
@@ -497,8 +497,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x08;
         byte[] version_byte = TransportHandler.toBytes(version);
-        System.arraycopy(version_byte, 0, bytes, index, version.length());
-        index = index + version.length();
+        System.arraycopy(version_byte, 0, bytes, index, version_byte.length);
+        index = index + version_byte.length;
         bytes[index++] = (byte) 0x84;
         bytes[index++] = (byte) 0x00;
         byte count = DataService.count_bytes(version_byte);
@@ -531,8 +531,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x0B;
         byte[] version_byte = TransportHandler.toBytes(version);
-        System.arraycopy(version_byte, 0, bytes, index, version.length());
-        index = index + version.length();
+        System.arraycopy(version_byte, 0, bytes, index, version_byte.length);
+        index = index + version_byte.length;
         bytes[index++] = (byte) 0x85;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
@@ -568,8 +568,8 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x08;
         byte[] version_byte = TransportHandler.toBytes(version);
-        System.arraycopy(version_byte, 0, bytes, index, version.length());
-        index = index + version.length();
+        System.arraycopy(version_byte, 0, bytes, index, version_byte.length);
+        index = index + version_byte.length;
         bytes[index++] = (byte) 0x86;
         bytes[index++] = (byte) 0x00;
         byte count = DataService.count_bytes(version_byte);
@@ -1385,17 +1385,17 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
-    public void IR_get_version_CallBack(Device device, String ip, byte[] version,
-                                        DeviceTokenRelationService deviceTokenRelationService,
-                                        GatewayGroupService gatewayGroupService)
-            throws Exception {
-        /*  上传版本属性  */
-        String version_str  = DataService.byte2HexStr(version);
-        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())));
-        JsonObject version_json = new JsonObject();
-        version_json.addProperty("version", version_str);
-        DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), version_json.toString());
-    }
+//    public void IR_get_version_CallBack(Device device, String ip, byte[] version,
+//                                        DeviceTokenRelationService deviceTokenRelationService,
+//                                        GatewayGroupService gatewayGroupService)
+//            throws Exception {
+//        /*  上传版本属性  */
+//        String version_str  = DataService.byte2HexStr(version);
+//        DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionByIEEEAndEndPoint(device.getIEEE(), Integer.parseInt(String.valueOf(device.getEndpoint())));
+//        JsonObject version_json = new JsonObject();
+//        version_json.addProperty("version", version_str);
+//        DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), version_json.toString());
+//    }
 
     public void permitDeviceJoinTheGateway_CallBack(){
 

@@ -101,9 +101,9 @@ public interface GatewayMethod {
   void IR_get_version(Device device, String ip);
 
   // 查询红外版本回调
-  void IR_get_version_CallBack(Device device, String ip, byte[] version,
-                               DeviceTokenRelationService deviceTokenRelationService,
-                               GatewayGroupService gatewayGroupService)throws Exception;
+//  void IR_get_version_CallBack(Device device, String ip, byte[] version,
+//                               DeviceTokenRelationService deviceTokenRelationService,
+//                               GatewayGroupService gatewayGroupService)throws Exception;
 
   // 红外设备匹配
   void IR_match(Device device, String ip, String version, int matchType);
