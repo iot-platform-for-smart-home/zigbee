@@ -130,7 +130,7 @@ public class HttpControl {
 
     public String httpGetDevice(String id) throws Exception{
         Request requestCreate = new Request.Builder()
-                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device/" + id.toString())
+                .url("http://47.105.120.203:30080/api/v1/deviceaccess/device/" + id)
                 .get()
                 .addHeader("Accept", "application/json, text/plain, */*")
                 .addHeader("Connection", "keep-alive")
