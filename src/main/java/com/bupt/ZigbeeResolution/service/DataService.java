@@ -5,6 +5,7 @@ import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.mqtt.DataMessageClient;
 import com.google.gson.JsonObject;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
@@ -487,41 +488,43 @@ public class DataService {
                 switch(clusterId){
                     case "0000":  // infrared
                         int seq = (int)bytes[7];
+                        int key = -1;
                         String attribute = byte2HexStr(Arrays.copyOfRange(bytes,8,10)); // 0A 40
                         JsonObject json = new JsonObject();
                         switch(bytes[21]){
                             case (byte)0x81:  // 匹配
-                                //json.addProperty("matchRes", (int)bytes[24]);
+                                json.addProperty("matchRes", (int)bytes[24]);
                                 break;
                             case (byte)0x82:  // 控制
-                                int key = bytes[24] + bytes[25] * 16;
-                                json.addProperty("key", key);
+                                //int key = bytes[24] + bytes[25] * 16;
+                                //json.addProperty("key", key);
                                 break;
                             case (byte)0x83:  // 学习
                                 int matchType = bytes[23];
                                 key = bytes[24] + bytes[25] * 16;
-                                json.addProperty("matchType", matchType);
-                                json.addProperty("key", key);
-                                //data.addProperty("learnRes", bytes[26]);
+                                //json.addProperty("matchType", matchType);
+                                //json.addProperty("key", key);
+                                data.addProperty("learnRes", bytes[26]);
+
                                 break;
                             case (byte)0x84:  // 查询当前设备参数
-                                int AC_key = bytes[23] + bytes[24] * 16;
-                                int TV_key = bytes[25] + bytes[26] * 16;
-                                int STB_key = bytes[27] + bytes[28] * 16;
+                                int AC_key = bytes[23] + bytes[24] * 16 * 16;
+                                int TV_key = bytes[25] + bytes[26] * 16 * 16;
+                                int STB_key = bytes[27] + bytes[28] * 16 * 16;
                                 json.addProperty("AC_key", AC_key);
                                 json.addProperty("TV_key", TV_key);
                                 json.addProperty("STB_key", STB_key);
                                 json.addProperty("AC", bytes[29]==0xAA);
-                                json.addProperty("STB", bytes[30]==0xAA);
+                                json.addProperty("TV", bytes[30]==0xAA);
                                 json.addProperty("STB", bytes[31]==0xAA);
                                 break;
                             case (byte)0x85:  // 删除某个学习的键
-                                matchType = bytes[23];
-                                key = bytes[24] + bytes[25] * 16;
-                                json.addProperty("matchType", matchType);
-                                json.addProperty("key", key);
+                                //matchType = bytes[23];
+                                //key = bytes[24] + bytes[25] * 16;
+                                //json.addProperty("matchType", matchType);
+                                //json.addProperty("key", key);
                                 break;
-                            case (byte)0x86:  //
+                            case (byte)0x86:  // 删除全部学习数据
                                 //json.addProperty("deleteRes", 0);
                                 break;
                             case (byte)0x8A:

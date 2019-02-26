@@ -109,7 +109,7 @@ public interface GatewayMethod {
   void IR_match(Device device, String ip, String version, int matchType);
 
   // 透传情况
-  void IR_penetrate(Device device, String ip, String version, int seq, int matchType, int key);
+    void IR_penetrate(Device device, String ip, String version, int seq, int matchType, int key);
 
   // 红外学习
   void IR_learn(Device device, String ip, String version, int matchType, int key);

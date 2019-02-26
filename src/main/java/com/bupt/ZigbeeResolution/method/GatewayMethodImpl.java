@@ -10,6 +10,7 @@ import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod{
@@ -393,8 +394,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x81;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
-        byte count = DataService.count_bytes(version_byte);
-        bytes[index] = (byte) (9 + count + (byte) 0x81 + (byte)(0xFF & matchType));
+        //byte count = DataService.count_bytes(version_byte);
+        //bytes[index] = (byte) (9 + count + (byte) 0x81 + matchType);
+        byte[] countValue = new byte[11];
+        System.arraycopy(bytes, index-11, countValue, 0, 11);
+        bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
@@ -429,9 +433,12 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
         bytes[index++] = (byte) (0x00FF & key);
-        bytes[index++] = (byte) (0x00FF & key);
-        byte count = DataService.count_bytes(version_byte);
-        bytes[index] = (byte) (0x0B + count + (byte) 0x82 + 0x01 + matchType + key);
+        bytes[index++] = (byte) (0xFF & key>>8);
+        //byte count = DataService.count_bytes(version_byte);
+        //bytes[index] = (byte) (0x0B + count + (byte) 0x83  + matchType + key);
+        byte[] countValue = new byte[12];
+        System.arraycopy(bytes, index-12, countValue, 0, 12);
+        bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
@@ -466,19 +473,22 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
         bytes[index++] = (byte) (0x00FF & key);
-        bytes[index++] = (byte) (0x00FF & key);
-        byte count = DataService.count_bytes(version_byte);
-        bytes[index] = (byte) (0x0B + count + (byte) 0x82 + 0x01 + matchType + key);
+        bytes[index++] = (byte) (0xFF & key>>8);
+        //byte count = DataService.count_bytes(version_byte);
+        //bytes[index] = (byte) (0x0B + count + (byte) 0x82 + matchType + key);
+        byte[] countValue = new byte[12];
+        System.arraycopy(bytes, index-12, countValue, 0, 12);
+        bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
     }
 
     public void IR_query_current_device_params(Device device, String ip, String version) {
-        byte[] bytes = new byte[25];
+        byte[] bytes = new byte[27];
 
         int index = 0;
-        bytes[index++] = (byte) (0xFF & 25);
+        bytes[index++] = (byte) (0xFF & 27);
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFF;
@@ -486,12 +496,12 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0xFF;
         bytes[index++] = (byte) 0xFE;
         bytes[index++] = (byte) 0xA7;
-        bytes[index++] = (byte) 0x11;
+        bytes[index++] = (byte) 0x12;
         System.arraycopy(TransportHandler.toBytes(device.getShortAddress()), 0, bytes, index, TransportHandler.toBytes(device.getShortAddress()).length);
         index = index + TransportHandler.toBytes(device.getShortAddress()).length;
         bytes[index++] = device.getEndpoint();
         bytes[index++] = (byte) 0x03; // infrare control type
-        bytes[index++] = (byte) 0x0B;
+        bytes[index++] = (byte) 0x0C;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) 0x55;
         bytes[index++] = (byte) 0x55;
@@ -501,8 +511,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         index = index + version_byte.length;
         bytes[index++] = (byte) 0x84;
         bytes[index++] = (byte) 0x00;
-        byte count = DataService.count_bytes(version_byte);
-        bytes[index] = (byte) (0x08 + count + (byte) 0x84 );
+        //byte count = DataService.count_bytes(version_byte);
+        //bytes[index] = (byte) (0x08 + count + (byte) 0x84);
+        byte[] countValue = new byte[9];
+        System.arraycopy(bytes, index-9, countValue, 0, 9);
+        bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
@@ -536,10 +549,12 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x85;
         bytes[index++] = (byte) 0x00;
         bytes[index++] = (byte) (0xFF & matchType);
-        bytes[index++] = (byte) (0x00FF & key);
-        bytes[index++] = (byte) (0x00FF & key);
-        byte count = DataService.count_bytes(version_byte);
-        bytes[index] = (byte) (0x0B + count + (byte) 0x82 + 0x01 + matchType + key);
+        bytes[index++] = (byte) (0xFF & key);
+        bytes[index++] = (byte) (0xFF & key>>8);
+        //byte count = DataService.count_bytes(version_byte);
+        byte[] countValue = new byte[12];
+        System.arraycopy(bytes, index-12, countValue, 0, 12);
+        bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
@@ -572,8 +587,11 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         index = index + version_byte.length;
         bytes[index++] = (byte) 0x86;
         bytes[index++] = (byte) 0x00;
-        byte count = DataService.count_bytes(version_byte);
-        bytes[index] = (byte) (0x08 + count + (byte) 0x84 );
+        //byte count = DataService.count_bytes(version_byte);
+        //bytes[index] = (byte) (0x08 + count + (byte) 0x86 );
+        byte[] countValue = new byte[9];
+        System.arraycopy(bytes, index-9, countValue, 0, 9);
+        bytes[index] = DataService.count_bytes(countValue);
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);
@@ -603,7 +621,7 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
         bytes[index++] = (byte) 0x02;
         bytes[index++] = (byte) 0x8A;
         bytes[index++] = (byte) 0x00;
-        bytes[index] = (byte) (0x02 + (byte)0x8A );
+        bytes[index] = (byte) 0x8C;
 
         sendMessage = TransportHandler.getSendContent(12, bytes);
         SocketServer.getMap().get(ip).writeAndFlush(sendMessage);

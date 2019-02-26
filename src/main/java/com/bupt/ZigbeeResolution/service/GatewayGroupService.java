@@ -2,7 +2,6 @@ package com.bupt.ZigbeeResolution.service;
 
 import com.bupt.ZigbeeResolution.data.GatewayGroup;
 import com.bupt.ZigbeeResolution.mapper.GatewayGroupMapper;
-import org.apache.ibatis.annotations.Insert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

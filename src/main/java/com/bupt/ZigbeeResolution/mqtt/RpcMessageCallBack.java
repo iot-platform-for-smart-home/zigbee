@@ -1,10 +1,13 @@
 package com.bupt.ZigbeeResolution.mqtt;
 
 import com.bupt.ZigbeeResolution.data.Device;
+import com.bupt.ZigbeeResolution.data.DeviceTokenRelation;
 import com.bupt.ZigbeeResolution.method.GatewayMethod;
 import com.bupt.ZigbeeResolution.method.GatewayMethodImpl;
 import com.bupt.ZigbeeResolution.service.DataService;
+import com.bupt.ZigbeeResolution.service.DeviceTokenRelationService;
 import com.bupt.ZigbeeResolution.service.GatewayGroupService;
+import com.bupt.ZigbeeResolution.service.InfraredService;
 import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -13,12 +16,19 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallback;
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class RpcMessageCallBack implements MqttCallback{
 	private String token;
 	private GatewayGroupService gatewayGroupService;
 	private RpcMqttClient rpcMqttClient;
 	private GatewayMethod gatewayMethod = new GatewayMethodImpl();
+
+	@Autowired
+	InfraredService irService;
+
+	@Autowired
+	DeviceTokenRelationService deviceTokenRelationService;
 
 	public RpcMessageCallBack(MqttClient rpcMqtt,String token, GatewayGroupService gatewayGroupService, String gatewayName){
 		this.token = token;
@@ -213,7 +223,7 @@ public class RpcMessageCallBack implements MqttCallback{
 				controlDevice.setShortAddress(jsonObject.get("shortAddress").getAsString());
 				controlDevice.setEndpoint(jsonObject.get("Endpoint").getAsByte());
 				String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
-				String version = "";  // TODO query in database
+				String version = "";
 				int matchType = 5;
 
                 switch (jsonObject.get("methodName").getAsString()){
@@ -223,7 +233,6 @@ public class RpcMessageCallBack implements MqttCallback{
 							//rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
 						}
 						gatewayMethod.IR_get_version(controlDevice, ip);
-						// TODO return the version of response to miniprogram
 						break;
 
 					case "match":  // 码组匹配
@@ -236,24 +245,46 @@ public class RpcMessageCallBack implements MqttCallback{
 						gatewayMethod.IR_match(controlDevice, ip, version, matchType);
 						break;
 
-                    case "learn":
-                        //byte learnMethod = 0x02;
-                        //byte[] learnData = {0x30, 0x10, 0x40};
+                    case "learn":  // 码组学习
 						version = jsonObject.get("version").getAsString();
 						matchType = jsonObject.get("matchType").getAsInt();
-                        Integer learn_key = jsonObject.get("key").getAsInt();
+//                        Integer learn_key = jsonObject.get("key").getAsInt();
+                        String key_name = jsonObject.get("name").getAsString();
+						Integer learn_key = null;
 
-                        //String ip = gatewayGroupService.getGatewayIp(controlDevice.getShortAddress(), Integer.parseInt(String.valueOf(controlDevice.getEndpoint())));
                         if (ip == null) {
                             System.out.println("Gateway offline");
                             //rpcMqttClient.publicResponce(Config.RPC_RESPONSE_TOPIC+requestId,"error");
                         }
-                        gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
+//						gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
+
+						DeviceTokenRelation deviceTokenRelation = deviceTokenRelationService.getRelotionBySAAndEndPoint(controlDevice.getShortAddress(), (int)controlDevice.getEndpoint());
+                        if (null != deviceTokenRelation) {
+							if (matchType == 1) {
+								learn_key = irService.get_maxkey_of_airCondition(deviceTokenRelation.getUuid());
+								if(null == learn_key){ // 若从未学习过按键, 空调设备从603开始
+									learn_key = 603;
+								} else {  // 若已学习过按键，取（learn_key + 1）为当前值
+									learn_key += 1;
+								}
+							} else {
+								learn_key = irService.get_maxkey_of_non_airConditon(deviceTokenRelation.getUuid());
+								if (null == learn_key) {
+									learn_key = 44; // 若从未学习过按键, 其他红外设备从44开始
+								} else {
+									learn_key += 1;
+								}
+							}
+							while (null != irService.findKey(deviceTokenRelation.getUuid(), learn_key)){
+								learn_key += 1;
+							}
+							gatewayMethod.IR_learn(controlDevice, ip, version, matchType, learn_key);
+
+                        	irService.addKey(deviceTokenRelation.getUuid(), learn_key, key_name, matchType);
+						}
                         break;
 
 					case "penetrate":
-						//byte penetrateMethod = 0x03;
-						//byte[] penetrateData = TransportHandler.toBytes(jsonObject.get("penetrateData").getAsString());
 						version = jsonObject.get("version").getAsString();
 						matchType = jsonObject.get("matchType").getAsInt();
 						Integer control_key = jsonObject.get("key").getAsInt();
