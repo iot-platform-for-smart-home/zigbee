@@ -539,7 +539,7 @@ public class DataService {
                         DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), json.toString());
                         break;
 
-                    case "0204":
+                    case "0204":  // 温度传感器
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++){
                             if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("0000")){
                                 if(bytes[10+i*5] == 0x29) {
@@ -580,22 +580,22 @@ public class DataService {
                         }
                         break;
 
-                    case "0005":
+                    case "0005":  // 人体红外
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
                             if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("8000")) {
                                 if (bytes[10 + i * 5] == 0x21) {
                                     alarm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
-                                    if(alarm==16){
-                                        data.addProperty("alarm", 0D);
-                                    }else{
+                                    if(alarm==1 || alarm == 21){  // 有人经过
                                         data.addProperty("alarm", 1D);
+                                    }else{
+                                        data.addProperty("alarm", 0D);
                                     }
                                 }
                             }
                         }
                         break;
 
-                    case "0004":
+                    case "0004":  // 光照传感器
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
                             if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0000")) {
                                 if (bytes[10 + i * 5] == 0x21) {
