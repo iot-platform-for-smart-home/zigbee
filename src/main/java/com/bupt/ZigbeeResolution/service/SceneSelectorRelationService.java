@@ -41,4 +41,8 @@ public class SceneSelectorRelationService {
     public Boolean deleteBindInfoBySceneSelector(String sceneSelectorId){
         return sceneSelectorRelationMapper.deleteBindInfoBySceneSelector(sceneSelectorId)==0;
     }
+
+    public Boolean deleteBindInfoByDeviceId(String deviceId){
+        return sceneSelectorRelationMapper.deleteBindInfoByDeviceId(deviceId)==0;
+    }
 }

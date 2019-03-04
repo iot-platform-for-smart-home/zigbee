@@ -48,6 +48,13 @@ public class DeviceController {
         }
         gatewayMethod.deleteDevice(device, gatewayGroup.getIp());
 
+        List<DeviceTokenRelation> allDevices = deviceTokenRelationService.getRelationByIEEE(singleDeviceTokenRelation.getIEEE());
+        for(DeviceTokenRelation eachDevice: allDevices){
+            if(sceneSelectorRelationService.deleteBindInfoByDeviceId(eachDevice.getUuid())){
+                return "some error happen in delete sceneSelector relation";
+            }
+        }
+
         if(deviceTokenRelationService.deleteDeviceByIEEE(singleDeviceTokenRelation.getIEEE())){
             return "error";
         }

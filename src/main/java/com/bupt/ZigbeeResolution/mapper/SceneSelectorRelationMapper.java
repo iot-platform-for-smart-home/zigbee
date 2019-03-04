@@ -30,4 +30,7 @@ public interface SceneSelectorRelationMapper {
 
     @Delete("DELETE FROM sceneSelectorRelation WHERE sceneSelectorId = #{sceneSelectorId}")
     Integer deleteBindInfoBySceneSelector(@Param("sceneSelectorId") String sceneSelectorId);
+
+    @Delete("DELETE FROM sceneSelectorRelation WHERE deviceId = #{deviceId}")
+    Integer deleteBindInfoByDeviceId(@Param("deviceId") String deviceId);
 }

@@ -10,7 +10,6 @@ import com.bupt.ZigbeeResolution.transform.TransportHandler;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod{
