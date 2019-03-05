@@ -585,9 +585,15 @@ public class DataService {
                             if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("8000")) {
                                 if (bytes[10 + i * 5] == 0x21) {
                                     alarm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
-                                    if(alarm==1 || alarm == 21){  // 有人经过
+                                    if (alarm== 1 || alarm == 21 ){   // 人体红外报警、水浸
                                         data.addProperty("alarm", 1D);
-                                    }else{
+                                    } else if (alarm == 17) {  // 烟感报警
+                                        data.addProperty("alarm", 1D);
+                                    } else if (alarm == 5) {   // 吸顶红外 、 门磁(0x04是关门)
+                                        data.addProperty("alarm", 1D);
+                                    } else if (alarm == 2) {   // 紧急按钮
+                                        data.addProperty("alarm", 1D);
+                                    } else {    // 0x10  0x15  0x11  0x00
                                         data.addProperty("alarm", 0D);
                                     }
                                 }
