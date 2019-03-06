@@ -476,6 +476,7 @@ public class DataService {
                 Integer humidity;
                 Integer pm;
                 Integer alarm;
+                Integer attribute_value_length;
                 Integer illumination;
                 Double onlineStatus;
                 JsonObject data = new JsonObject();
@@ -539,7 +540,7 @@ public class DataService {
                         DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), json.toString());
                         break;
 
-                    case "0204":  // 温度传感器
+                    case "0204":  // 温度传感器上报数据
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++){
                             if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("0000")){
                                 if(bytes[10+i*5] == 0x29) {
@@ -549,21 +550,43 @@ public class DataService {
                                     //System.out.println(temperature);
                                     data.addProperty("temperature", temperature);
                                 }
-                            }else if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("1100")){
+                            }else if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("1100")){ // TODO 旧版本API文档表示 0204是温湿度
                                 if(bytes[10+i*5] == 0x29) {
                                     humidity = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
                                     data.addProperty("humidity" , humidity.doubleValue());
                                 }
                             }
                         }
-
                         break;
-                    case "1504":
+
+                    case "0504":  // 湿度传感器上报数据
+                        for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++){
+                            if(byte2HexStr(Arrays.copyOfRange(bytes, 8+i*5, 10+i*5)).equals("0000")){  // 0x0000表示湿度测量值
+                                if(bytes[10+i*5] == 0x29) {  // 数据类型: uint16
+                                    humidity = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                    data.addProperty("humidity" , humidity.doubleValue());
+                                }
+                            }
+                        }
+                        break;
+
+                    case "1504":  // PM2.5上报
+                        String[] PM = {"PM1.0", "PM2.5","PM10"};
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
-                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0000")) {
+                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0100")) {
+                                if (bytes[10 + i * 5] == 0x21) {
+                                    pm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                    data.addProperty("PM1.0", pm.doubleValue());
+                                }
+                            }else if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0000")) {
                                 if (bytes[10 + i * 5] == 0x21) {
                                     pm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
                                     data.addProperty("PM2.5", pm.doubleValue());
+                                }
+                            }else if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("0200")) {
+                                if (bytes[10 + i * 5] == 0x21) {
+                                    pm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                    data.addProperty("PM10", pm.doubleValue());
                                 }
                             }
                         }
@@ -580,23 +603,47 @@ public class DataService {
                         }
                         break;
 
-                    case "0005":  // 人体红外
+                    case "0005":  // 报警设备
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
-                            if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("8000")) {
-                                if (bytes[10 + i * 5] == 0x21) {
-                                    alarm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
-                                    if (alarm== 1 || alarm == 21 ){   // 人体红外报警、水浸
+                            String message_type = byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5));
+                            if (message_type.equals("8000")) {  // 有设备上传报警状态
+                                if (bytes[10 + i * 5] == 0x21) {  // 属性数据类型为 uint16 -> 0xffff
+//                                    alarm = dataBytesToInt(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                    String[] attribute_array = {"alarm","alarm","tamper","battery","surpervision","restore","trouble","ac"};
+                                    byte[] attribute_value = byteToBit(bytes[11+i*5]);
+                                    if ( attribute_value[0] == 0x1 || attribute_value[1] == 0x1) {  // bit0 和 bit1 表示报警状态
                                         data.addProperty("alarm", 1D);
-                                    } else if (alarm == 17) {  // 烟感报警
-                                        data.addProperty("alarm", 1D);
-                                    } else if (alarm == 5) {   // 吸顶红外 、 门磁(0x04是关门)
-                                        data.addProperty("alarm", 1D);
-                                    } else if (alarm == 2) {   // 紧急按钮
-                                        data.addProperty("alarm", 1D);
-                                    } else {    // 0x10  0x15  0x11  0x00
-                                        data.addProperty("alarm", 0D);
                                     }
+                                    for (int j = 2; j < 8; j++){  // 暂时只考虑低位字节，高位字节全0不考虑
+                                        data.addProperty(attribute_array[j], (double) attribute_value[j]);
+                                    }
+//                                    if (alarm== 1 || alarm == 21) {   // 人体红外报警、水浸
+//                                        data.addProperty("alarm", 1D);
+//                                    } else if (alarm == 17) {  // 烟感报警
+//                                        data.addProperty("alarm", 1D);
+//                                    } else if (alarm == 5) {   // 吸顶红外 、 门磁(0x04是关门)
+//                                        data.addProperty("alarm", 1D);
+//                                    } else if (alarm == 2) {   // 紧急按钮
+//                                        data.addProperty("alarm", 1D);
+//                                    } else {    // 0x10  0x15  0x11  0x00
+//                                        data.addProperty("alarm", 0D);
+//                                    }
+
                                 }
+                            } else if (message_type.equals("8100")) {  // 设备注册成功
+                                // 数据类型 -> 这里用字节数表示（默认为无符号整型）
+                                attribute_value_length = (int)(bytes[10 + i * 5]) - 31;
+                                // 注册成功后的 ZoneID
+                                String zone_id = byte2HexStr(Arrays.copyOfRange(bytes, 11 + i * 5, 13 + i * 5));
+                                // 设备的ZoneType
+                                String zone_type = byte2HexStr(Arrays.copyOfRange(bytes, 13 + i * 5, 15 + i * 5));
+                                data.addProperty("zone_id", zone_id);
+                                data.addProperty("zone_type", zone_type);
+
+                            } else if (message_type.equals("0100")) { // ZoneType 返回
+                                byte data_type = bytes[10 + i * 5];
+                                String zone_type = byte2HexStr(Arrays.copyOfRange(bytes, 11+i*5, 13+i*5));
+                                data.addProperty("zone_type", zone_type);
                             }
                         }
                         break;
@@ -623,7 +670,7 @@ public class DataService {
                         }
                         break;
 
-                    case "EEFB":
+                    case "EEFB":  // 入网报告
                         for(int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) {
                             if (byte2HexStr(Arrays.copyOfRange(bytes, 8 + i * 5, 10 + i * 5)).equals("D0F0")) {
                                 if (bytes[10 + i * 5] == 0x20) {
@@ -706,30 +753,101 @@ public class DataService {
                         }
                         break;
 
-                    case "0100":
-                        int reportAmount = Integer.parseInt(String.valueOf(bytes[7]));
-                        if(byte2HexStr(Arrays.copyOfRange(bytes, 8 , 10)).equals("2100")){
+                    case "0100":  // 电压值上报
+                        int atrribute_report_count = Integer.parseInt(String.valueOf(bytes[7]));
+                        // 电池电压
+                        if(byte2HexStr(Arrays.copyOfRange(bytes, 8 , 10)).equals("2000")){
                             if (bytes[10] == 0x20) {
-                                double electricPercent = ((int) (bytes[11] & 0xFF)) / 2D;
+                                double battery_voltage = ((int) (bytes[11] & 0xFF)) / 10D;
+                                data.addProperty("voltage", battery_voltage);
+                            }
+                        }
+                        // 电池电量
+                        if(byte2HexStr(Arrays.copyOfRange(bytes, 12 , 14)).equals("2100")){
+                            if (bytes[14] == 0x20) {
+                                double electricPercent = ((int) (bytes[15] & 0xFF)) / 2D;
                                 data.addProperty("electric(%)", electricPercent);
                             }
                         }
-                        if(byte2HexStr(Arrays.copyOfRange(bytes, 12 , 14)).equals("3E00")){
-                            if (bytes[14] == 0x1B) {
+                        // 电池状态
+                        if(byte2HexStr(Arrays.copyOfRange(bytes, 16 , 18)).equals("3E00")){
+                            if (bytes[18] == 0x1B) {
+                                // 电池欠压
                                 if(byte2HexStr(Arrays.copyOfRange(bytes, 15 , 19)).equals("00000001")){
                                     data.addProperty("lowPowerAlarm",true);
-                                }else if(byte2HexStr(Arrays.copyOfRange(bytes, 15 , 19)).equals("00000000")){
+                                }
+                                // 电池正常
+                                else if(byte2HexStr(Arrays.copyOfRange(bytes, 15 , 19)).equals("00000000")){
                                     data.addProperty("lowPowerAlarm",false);
                                 }
                             }
                         }
 
                         break;
+
+                    case "0900":  // 0x0009 表示这条数据包指示设备的一些报警信息
+                        for (int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) { // 表示 x 个属性上报
+                            // 报警命令帧类型 (0x0501安防遥控器，0xf5f0遥控器)
+                            String alarm_frame_type = byte2HexStr(Arrays.copyOfRange(bytes, 8, 10));
+                            // 剩余数据长度
+                            int remaining_data_length = (int)(bytes[11]);
+                            // 遥控器发出的命令类型 (0x00是 ARM 命令)
+                            byte instruction_type = bytes[12];
+                            // 报警模式 (0x00 撤防， 0x01在家布防， 0x02夜间布防， 0x03布防)
+                            byte alarm_type = bytes[13];
+                            // 密码长度
+                            int password_length = bytes[14];
+                            // 密码
+                            String password = AsciiStringToString(byte2HexStr(Arrays.copyOfRange(bytes, 15, 15+password_length)));
+                            // ZoneID
+                            byte zone_id = bytes[15+password_length];
+                        }
+                        break;
                 }
                 gatewayMethod.data_CallBack(shortAddress, endPoint, data, deviceTokenRelationService, sceneService, sceneRelationService, gatewayGroupService);
                 break;
         }
         System.out.println("完成");
+    }
+
+    /**
+     * 十六进制字符串转十进制
+     * @param hex 十六进制字符串
+     * @return 十进制数值
+     */
+    public static int hexStringToAlgorism(String hex) {
+        hex = hex.toUpperCase();
+        int max = hex.length();
+        int result = 0;
+        for (int i = max; i > 0; i--) {
+            char c = hex.charAt(i - 1);
+            int algorism = 0;
+            if (c >= '0' && c <= '9') {
+                algorism = c - '0';
+            } else {
+                algorism = c - 55;
+            }
+            result += Math.pow(16, max - i) * algorism;
+        }
+        return result;
+    }
+
+    /**
+     * ASCII码字符串转数字字符串
+     * @param
+     * @return 字符串
+     */
+    public static String AsciiStringToString(String content) {
+        String result = "";
+        int length = content.length() / 2;
+        for (int i = 0; i < length; i++) {
+            String c = content.substring(i * 2, i * 2 + 2);
+            int a = hexStringToAlgorism(c);
+            char b = (char) a;
+            String d = String.valueOf(b);
+            result += d;
+        }
+        return result;
     }
 
     public static String byte2HexStr(byte[] b) {
