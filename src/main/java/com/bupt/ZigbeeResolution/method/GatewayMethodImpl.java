@@ -1487,12 +1487,14 @@ public class GatewayMethodImpl extends OutBoundHandler implements  GatewayMethod
                 String deviceJson = httpControl.httpGetDevice(deviceTokenRelation.getUuid());
                 DeviceTokenRelation gatewayInfo = deviceTokenRelationService.getGateway(gatewayName);
 
-                JsonObject jsonObject =(JsonObject) new JsonParser().parse(deviceJson);
-                jsonObject.remove("parentDeviceId");
-                jsonObject.addProperty("parentDeviceId",gatewayInfo.getUuid());
+                if (!deviceJson.equals("") && deviceJson != null) {
+                    JsonObject jsonObject = (JsonObject) new JsonParser().parse(deviceJson);
+                    jsonObject.remove("parentDeviceId");
+                    jsonObject.addProperty("parentDeviceId", gatewayInfo.getUuid());
 
-                httpControl.UpdateDevice(jsonObject.toString());
-                DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
+                    httpControl.UpdateDevice(jsonObject.toString());
+                    DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
+                }
             }else{
                 DataMessageClient.publishAttribute(deviceTokenRelation.getToken(), device.toString());
             }
