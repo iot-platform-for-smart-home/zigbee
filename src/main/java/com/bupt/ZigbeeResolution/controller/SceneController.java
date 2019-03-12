@@ -8,6 +8,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +36,8 @@ public class SceneController{
 
     @Autowired
     private SceneRelationService sceneRelationService;
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
 
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     @ResponseBody
@@ -190,7 +194,7 @@ public class SceneController{
 
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(scene.getGatewayName());
         if (gatewayGroup == null){
-            System.err.println("网关不在线");
+            logger.warn("gateway[%s] is offline", scene.getGatewayName());
             return "error";
         }
         String ip = gatewayGroup.getIp();
@@ -200,12 +204,14 @@ public class SceneController{
         gatewayMethod.deleteSceneMember(scene, device, ip);
 
         if(!sceneDeviceService.deleteSceneDeviceBySceneId(scene_id)){
-            System.err.println("删除场景设备错误！");
+            logger.error("database operation exception: fail to delete record in sceneDevice.");
+            //System.err.println("删除场景设备错误！");
             //return "error";
         }
 
         if(!sceneService.deleteSceneBySceneId(scene_id)){
-            System.err.println("删除场景错误！");
+            logger.error("database operation exception: fail to delete record in scene.");
+            //System.err.println("删除场景错误！");
             //return "error";
         }
         return "success";
@@ -220,7 +226,12 @@ public class SceneController{
 
         Integer bindType = sceneSelectorRelationService.getBindTypeBySceneSelectorId(sceneSelectorId);
         if(bindType!=null){
-            sceneSelectorRelationService.deleteBindInfoBySceneSelector(sceneSelectorId);
+            try {
+                sceneSelectorRelationService.deleteBindInfoBySceneSelector(sceneSelectorId);
+            } catch (Exception e){
+                logger.error("database operation exception: fail to delete record in \'sceneSelectorRelation\'.");
+                System.err.println(e.getMessage());
+            }
         }
 
         Scene scene = sceneService.getSceneBySceneId(scene_id);
@@ -238,7 +249,8 @@ public class SceneController{
         SceneSelectorRelation sceneSelectorRelation = new SceneSelectorRelation(sceneSelectorId, 1, scene_id);
 
         if(!sceneSelectorRelationService.addBindScene(sceneSelectorRelation)){
-            System.err.println("数据库更新错误");
+            logger.error("database operation exception: fail to insert record to \'sceneSelectorRelation\'");
+            //System.err.println("数据库更新错误");
             return  "error";
         }
         return "success";
@@ -251,7 +263,8 @@ public class SceneController{
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(scene.getGatewayName());
 
         if (gatewayGroup == null){
-            System.err.println("网关不在线");
+            logger.warn("Gateway[%s] is offline", scene.getGatewayName());
+            //System.err.println("网关不在线");
             return "error";
         }
 

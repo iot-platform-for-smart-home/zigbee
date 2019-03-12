@@ -13,6 +13,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +33,8 @@ public class DeviceController {
     @Autowired
     private SceneSelectorRelationService sceneSelectorRelationService;
 
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @RequestMapping(value = "/deleteDevice/{deviceId}", method = RequestMethod.DELETE)
     @ResponseBody
     public String deleteDevice(@PathVariable("deviceId")String deviceId ){
@@ -44,20 +48,24 @@ public class DeviceController {
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(singleDeviceTokenRelation.getGatewayName());
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
         if(gatewayGroup.getIp()==null){
-            return "error";
+            logger.warn("Warning: Cannot find record in gatewayGroup");
+            //return "error";
         }
         gatewayMethod.deleteDevice(device, gatewayGroup.getIp());
 
         List<DeviceTokenRelation> allDevices = deviceTokenRelationService.getRelationByIEEE(singleDeviceTokenRelation.getIEEE());
         for(DeviceTokenRelation eachDevice: allDevices){
             if(sceneSelectorRelationService.deleteBindInfoByDeviceId(eachDevice.getUuid())){
-                return "some error happen in delete sceneSelector relation";
+                logger.error("database operation exception: fail to delete record in senceSelectorRelation");
+                //return "some error happen in delete sceneSelector relation";
             }
         }
 
         if(deviceTokenRelationService.deleteDeviceByIEEE(singleDeviceTokenRelation.getIEEE())){
-            return "error";
+            logger.error("database operation exception: fail to delete record in deviceTokenRelation");
+            //return "error";
         }
+        logger.info("delete device successfully.");
         return "success";
     }
 
@@ -70,6 +78,7 @@ public class DeviceController {
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(gatewayNumber);
 
         if(gatewayGroup.getIp()==null){
+            logger.warn("Gateway[%s] is offline", gatewayName);
             return "error|Gateway Offline";
         }
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
@@ -87,7 +96,12 @@ public class DeviceController {
         Integer bindType = sceneSelectorRelationService.getBindTypeBySceneSelectorId(sceneSelectorId);
         if(bindType!=null){
             if(bindType==1){
-                sceneSelectorRelationService.deleteBindInfoBySceneSelector(sceneSelectorId);
+                try {
+                    sceneSelectorRelationService.deleteBindInfoBySceneSelector(sceneSelectorId);
+                } catch (Exception e){
+                    logger.error("database operation exception: fail to delete record in sceneSelectorRelation");
+                    System.err.println(e.getMessage());
+                }
             }
         }
 
@@ -98,6 +112,7 @@ public class DeviceController {
         sceneSelector.setIEEE(sceneSelectorTokenRelation.getIEEE());
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(sceneSelectorTokenRelation.getGatewayName());
         if(gatewayGroup.getIp()==null){
+            logger.warn("Gateway[%s] is offline", sceneSelectorTokenRelation.getGatewayName());
             return "error:gateway offline";
         }
 
@@ -121,6 +136,7 @@ public class DeviceController {
             }
         }
         if(i!=0){
+            logger.warn("%d devices are not in the same gateway as the scene selector");
             return "error:"+i+"devices are not in the same gateway as the scene selector";
         }
         return "success";
@@ -132,6 +148,7 @@ public class DeviceController {
         List<SceneSelectorRelation> sceneSelectorRelations = sceneSelectorRelationService.getBindInfoBySceneSelectorId(sceneSelectorId);
         JsonObject jsonObject = new JsonObject();
         if(sceneSelectorRelations.size()==0){
+            logger.warn("scene binds no device yet.");
             return jsonObject.toString();
         }
         if(sceneSelectorRelations.get(0).getBindType()==1){
@@ -160,6 +177,7 @@ public class DeviceController {
         sceneSelector.setIEEE(sceneSelectorTokenRelation.getIEEE());
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(sceneSelectorTokenRelation.getGatewayName());
         if(gatewayGroup.getIp()==null){
+            logger.warn("Gateway[%s] is offline", sceneSelectorTokenRelation.getGatewayName());
             return "error:gateway offline";
         }
 
@@ -173,6 +191,7 @@ public class DeviceController {
             GatewayMethod gatewayMethod = new GatewayMethodImpl();
             gatewayMethod.cancelBindOfSwitchAndDevice(sceneSelector, device, gatewayGroup.getIp());
             if(sceneSelectorRelationService.deleteBindInfo(sceneSelectorId,deviceId)){
+                logger.error("database operation exception: fail to delete record in sceneSelectorRelation");
                 return "error|数据库删除失败";
             }
         }
