@@ -613,9 +613,11 @@ public class DataService {
                                     byte[] attribute_value = byteToBit(bytes[11+i*5]);
                                     if ( attribute_value[0] == 0x1 || attribute_value[1] == 0x1) {  // bit0 和 bit1 表示报警状态
                                         data.addProperty("alarm", 1D);
+                                    } else {
+                                        data.addProperty("alarm", 0D);
                                     }
                                     for (int j = 2; j < 8; j++){  // 暂时只考虑低位字节，高位字节全0不考虑
-                                        data.addProperty(attribute_array[j], (double) attribute_value[j]);
+                                        data.addProperty(attribute_array[j], (double) attribute_value[j]);//
                                     }
 //                                    if (alarm== 1 || alarm == 21) {   // 人体红外报警、水浸
 //                                        data.addProperty("alarm", 1D);
@@ -688,7 +690,7 @@ public class DataService {
                     case "0101":
                         int amount = Integer.parseInt(String.valueOf(bytes[7]));
                         if(byte2HexStr(Arrays.copyOfRange(bytes, 8 , 10)).equals("F5F0")){
-                            String dataType ;
+                            String dataType;
                             if(bytes[10]==0x42){
                                 dataType = "String";
                             }
@@ -785,7 +787,7 @@ public class DataService {
 
                         break;
 
-                    case "0900":  // 0x0009 表示这条数据包指示设备的一些报警信息
+                    case "0900":  // TODO 0x0009 表示这条数据包指示设备的一些报警信息
                         for (int i = 0; i<Integer.parseInt(String.valueOf(bytes[7])); i++) { // 表示 x 个属性上报
                             // 报警命令帧类型 (0x0501安防遥控器，0xf5f0遥控器)
                             String alarm_frame_type = byte2HexStr(Arrays.copyOfRange(bytes, 8, 10));

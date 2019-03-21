@@ -48,7 +48,7 @@ public class DeviceController {
         GatewayGroup gatewayGroup = gatewayGroupService.getGatewayGroup(singleDeviceTokenRelation.getGatewayName());
         GatewayMethod gatewayMethod = new GatewayMethodImpl();
         if(gatewayGroup.getIp()==null){
-            logger.warn("Warning: Cannot find record in gatewayGroup");
+            logger.warn("Gateway[%s] is offline", singleDeviceTokenRelation.getGatewayName());
             //return "error";
         }
         gatewayMethod.deleteDevice(device, gatewayGroup.getIp());
